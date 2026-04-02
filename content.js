@@ -34,14 +34,15 @@ tab.style.cssText = `
   position: fixed;
   top: 0;
   right: 12px;
-  background: #1e1e1e;
-  color: white;
+  background: ${bgColor};
   padding: 2px 12px;
   border-radius: 0 0 8px 8px;
   cursor: pointer;
   z-index: 999999;
   display: none;
   font-size: 12px;
+  border: 1px solid ${borderColor};
+  border-top: none;
 `;
 document.body.appendChild(tab);
 
