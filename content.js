@@ -117,6 +117,52 @@ toolbar.innerHTML = `
 
   <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
 
+  <button id="adapt-decrease-leading">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 13V19M19 13L21 16.2727M19 13L17 16.2727" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 10L19 4M19 10L17 6.72727M19 10L21 6.72727" />
+        <path stroke-linecap="round" d="M3 9.5H14" />
+        <path stroke-linecap="round" d="M3 14H14" />
+        <path stroke-linecap="round" d="M3 18.5H14" />
+        <path stroke-linecap="round" d="M3 5H14" />
+    </svg>
+  </button>
+
+  <input id="adapt-ldeading-value" type="text" name="adapt-size" placeholder="100%" style="width: auto; max-width: 32px; height: 18px;">
+
+  <button id="adapt-increase-leading">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 19V10M19 19L21 15.7273M19 19L17 15.7273" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 4L19 10M19 4L17 7.27273M19 4L21 7.27273" />
+        <path stroke-linecap="round" d="M3 9.5H14" />
+        <path stroke-linecap="round" d="M3 14H14" />
+        <path stroke-linecap="round" d="M3 18.5H14" />
+        <path stroke-linecap="round" d="M3 5H14"/>
+    </svg>
+  </button>
+
+  <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
+
+  <button id="adapt-decrease-spacing">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8.75001 11.7595L3.25004 11.7755M8.75001 11.7595L5.75876 14.7682M8.75001 11.7595L5.7413 8.7682" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.25 11.7405L20.75 11.7245M15.25 11.7405L18.2412 8.73183M15.25 11.7405L18.2587 14.7318" />
+        <path stroke-linecap="round" d="M11.7282 4.25076L11.7718 19.2507"/>
+    </svg>
+  </button>
+
+  <input id="adapt-ldeading-spacing" type="text" name="adapt-size" placeholder="100%" style="width: auto; max-width: 32px; height: 18px;">
+
+  <button id="adapt-increase-spacing">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.25004 11.7595L8.75002 11.7755M3.25004 11.7595L6.2413 14.7682M3.25004 11.7595L6.25876 8.7682" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M20.75 11.7405L15.25 11.7245M20.75 11.7405L17.7587 8.73183M20.75 11.7405L17.7412 14.7318"/>
+        <path stroke-linecap="round" d="M11.7282 4.25076L11.7718 19.2507" />
+    </svg>
+  </button>
+
+  <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
+
   <button id="adapt-define">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
