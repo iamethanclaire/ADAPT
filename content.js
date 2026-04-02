@@ -100,17 +100,17 @@ toolbar.innerHTML = `
 
   <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
 
-  <button id="adapt-increase-size">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M11.5 13.5H4.5M17.5 4V11M21 7.5H14M14 19L8 4L2 19"/>
-    </svg>
-  </button>
-
-  <input id="adapt-size-value" type="text" id="username" name="username" placeholder="100%" style="width: auto; max-width: 32px; height: 18px;">
-
   <button id="adapt-decrease-size">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
        <path stroke-linecap="round" stroke-linejoin="round" d="M11.5 13.5H4.5M21 7.5H14M14 19L8 4L2 19"/>
+    </svg>
+  </button>
+
+  <input id="adapt-size-value" type="text" name="adapt-size" placeholder="100%" style="width: auto; max-width: 32px; height: 18px;">
+
+  <button id="adapt-increase-size">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M11.5 13.5H4.5M17.5 4V11M21 7.5H14M14 19L8 4L2 19"/>
     </svg>
   </button>
 
