@@ -4,9 +4,6 @@
   "version": "1.0.0",
   "description": "Transform your web pages to be more accessible",
   "permissions": ["activeTab", "storage"],
-  "action": {
-    "default_popup": "popup.html"
-  },
   "web_accessible_resources": [
     {
       "resources": ["images/*"],
