@@ -3,6 +3,7 @@
 const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
 const bgColor = prefersDark ? "#1e1e1e" : "#ffffff";
+const inputColor = prefersDark ? "#343434" : "#d7d7d7";
 const textColor = prefersDark ? "#ffffff" : "#000000";
 const borderColor = prefersDark ? "#444" : "#cccccc";
 
@@ -28,7 +29,7 @@ toolbar.style.cssText = `
 // Create the tab to bring it back
 const tab = document.createElement("div");
 tab.id = "adapt-tab";
-tab.innerText = "A";
+// tab.innerText = "A";
 tab.style.cssText = `
   position: fixed;
   top: 0;
@@ -47,6 +48,11 @@ document.body.appendChild(tab);
 // fetch image for A.D.A.P.T Logo
 const logoSrc = chrome.runtime.getURL("images/icon-48.png");
 const logoInactiveSrc = chrome.runtime.getURL("images/icon-48-inactive.png")
+
+// inner html for tab
+tab.innerHTML = `
+  <img id="adapt-tab-logo" src="${logoSrc}" alt="Show toolbar" style="height: 16px; padding-left: 4px; padding-right: 4px;">
+`
 
 // inner html for toolbar
 toolbar.innerHTML = `
@@ -86,13 +92,53 @@ toolbar.innerHTML = `
     </svg>
   </button>
 
-   <button id="adapt-italic">
+   <button id="adapt-underline">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
         <path stroke-linecap="round" stroke-linejoin="round" d="M17.995 3.744v7.5a6 6 0 1 1-12 0v-7.5m-2.25 16.502h16.5" />
     </svg>
   </button>
 
   <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
+
+  <button id="adapt-increase-size">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M11.5 13.5H4.5M17.5 4V11M21 7.5H14M14 19L8 4L2 19"/>
+    </svg>
+  </button>
+
+  <input id="adapt-size-value" type="text" id="username" name="username" placeholder="100%" style="width: auto; max-width: 32px; height: 18px;">
+
+  <button id="adapt-decrease-size">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
+       <path stroke-linecap="round" stroke-linejoin="round" d="M11.5 13.5H4.5M21 7.5H14M14 19L8 4L2 19"/>
+    </svg>
+  </button>
+
+  <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
+
+  <button id="adapt-define">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+    </svg>
+  </button>
+
+  <button id="adapt-speak">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+    </svg>
+  </button>
+
+  <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
+
+  <button id="adapt-settings">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+    </svg>
+  </button>
+
+  <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
+
   
   <button id="adapt-hide" style="margin-left: auto; margin-right: 12px;">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
@@ -104,6 +150,7 @@ toolbar.innerHTML = `
 document.body.appendChild(toolbar);
 document.body.style.marginTop = "48px";
 
+//style buttons in toolbar
 toolbar.querySelectorAll("button").forEach(btn => {
   btn.style.background = "transparent";
   btn.style.color = textColor;
@@ -121,6 +168,20 @@ toolbar.querySelectorAll("button").forEach(btn => {
   btn.addEventListener("mouseleave", () => {
     btn.style.background = "transparent";
   });
+});
+
+//style text input in toolbar
+toolbar.querySelectorAll("input").forEach(inpt => {
+  inpt.style.background = inputColor;
+  inpt.style.color = textColor;
+  inpt.style.fontSize = "12px";
+  inpt.style.border = `1px solid ${borderColor}`;
+  inpt.style.padding = "4px 8px";
+  inpt.style.borderRadius = "4px";
+  inpt.style.cursor = "text";
+  inpt.style.display = "flex";
+  inpt.style.alignItems = "center";
+  inpt.style.justifyContent = "center";
 });
 
 // toggle active state
