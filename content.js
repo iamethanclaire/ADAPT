@@ -42,7 +42,6 @@ tab.style.cssText = `
 `;
 
 // create host / shadow root
-
 const host = document.createElement("div");
 host.id = "adapt-host";
 document.body.appendChild(host);

@@ -59,10 +59,20 @@ dropdownBtn.addEventListener("click", () => {
   dropdownMenu.style.display = isOpen ? "none" : "block";
 });
 
+// show dropdown 
+adaptShadow.addEventListener("click", (e) => {
+    if (!e.target.closest("#adapt-dropdown")) {
+        dropdownMenu.style.display = "none";
+    }
+});
+
+// hide dropdown when clicking outside
 document.addEventListener("click", (e) => {
-  if (!adaptShadow.getElementById("adapt-dropdown").contains(e.target)) {
-    dropdownMenu.style.display = "none";
-  }
+    const path = e.composedPath();
+    const insideDropdown = path.some(el => el.id === "adapt-dropdown");
+    if (!insideDropdown) {
+        dropdownMenu.style.display = "none";
+    }
 });
 
 // hover

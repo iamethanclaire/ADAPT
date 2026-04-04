@@ -1,5 +1,4 @@
 // inner html for toolbar
-
 function getToolbarHTML(logoSrc) {
     const { textColor, borderColor, bgColor } = ADAPT;
     return `
