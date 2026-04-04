@@ -2,10 +2,17 @@
 function getToolbarHTML(logoSrc) {
     const { textColor, borderColor, bgColor } = ADAPT;
     return `
+        <style>
+            .adapt-dropdown-item[data-value="arial"] { font-family: Arial, sans-serif !important; }
+            .adapt-dropdown-item[data-value="verdana"] { font-family: Verdana, sans-serif !important; }
+            .adapt-dropdown-item[data-value="helvetica"] { font-family: Helvetica, sans-serif !important; }
+            .adapt-dropdown-item[data-value="calibri"] { font-family: Calibri, sans-serif !important; }
+        </style>
+
         <img id="adapt-logo" src="${logoSrc}" alt="A.D.A.P.T" style="height: 32px; margin-left: 16px; margin-right: 16px;">
 
         <div id="adapt-dropdown" style="position: relative;">
-            <button id="adapt-dropdown-btn">Normal Text▾</button>
+            <button id="adapt-dropdown-btn">Page Default ▾</button>
             <div id="adapt-dropdown-menu" style="
             display: none;
             position: absolute;
@@ -16,11 +23,15 @@ function getToolbarHTML(logoSrc) {
             border-radius: 4px;
             min-width: 140px;
             z-index: 9999999;
+            max-height: 150px;
+            overflow-y: auto;
+            overflow-x: hidden;
             ">
-            <div class="adapt-dropdown-item" data-value="p">Normal Text</div>
-            <div class="adapt-dropdown-item" data-value="h1">Heading 1</div>
-            <div class="adapt-dropdown-item" data-value="h2">Heading 2</div>
-            <div class="adapt-dropdown-item" data-value="h3">Heading 3</div>
+            <div class="adapt-dropdown-item" data-value="page-default">Page Default</div>
+            <div class="adapt-dropdown-item" data-value="arial">Arial</div>
+            <div class="adapt-dropdown-item" data-value="verdana">Verdana</div>
+            <div class="adapt-dropdown-item" data-value="helvetica">Helvetica</div>
+            <div class="adapt-dropdown-item" data-value="calibri">Calibri</div>
             </div>
         </div>
 

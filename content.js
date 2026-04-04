@@ -66,6 +66,9 @@ reset.textContent = `
     all: revert;
     box-sizing: border-box;
   }
+  .adapt-dropdown-item {
+    font-size: 14px;
+  }
 `;
 shadow.appendChild(reset);
 
@@ -75,6 +78,5 @@ tab.innerHTML = getTabHTML(logoSrc);
 shadow.appendChild(tab);
 shadow.appendChild(toolbar);
 document.body.style.marginTop = "48px";
-
 // expose shadow to files
 var adaptShadow = shadow;
