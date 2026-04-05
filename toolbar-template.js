@@ -1,37 +1,40 @@
 // inner html for toolbar
 function getToolbarHTML(logoSrc) {
-    const { textColor, borderColor, bgColor } = ADAPT;
+    const { textColor, borderColor, bgColor, menuColor } = ADAPT;
     return `
-        <style>
-            .adapt-dropdown-item[data-value="arial"] { font-family: Arial, sans-serif !important; }
-            .adapt-dropdown-item[data-value="verdana"] { font-family: Verdana, sans-serif !important; }
-            .adapt-dropdown-item[data-value="helvetica"] { font-family: Helvetica, sans-serif !important; }
-            .adapt-dropdown-item[data-value="calibri"] { font-family: Calibri, sans-serif !important; }
-        </style>
-
         <img id="adapt-logo" src="${logoSrc}" alt="A.D.A.P.T" style="height: 32px; margin-left: 16px; margin-right: 16px;">
 
-        <div id="adapt-dropdown" style="position: relative;">
-            <button id="adapt-dropdown-btn">Page Default ▾</button>
-            <div id="adapt-dropdown-menu" style="
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background: ${bgColor};
-            border: 1px solid ${borderColor};
-            border-radius: 4px;
-            min-width: 140px;
-            z-index: 9999999;
-            max-height: 150px;
-            overflow-y: auto;
-            overflow-x: hidden;
+        <div id="adapt-dropdown" style="position: relative; width: 120px; justify-content: space-between;">
+            <button id="adapt-dropdown-btn" style="
+                width: 120px;
+                min-width: 120px;
+                max-width: 120px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
             ">
-            <div class="adapt-dropdown-item" data-value="page-default">Page Default</div>
-            <div class="adapt-dropdown-item" data-value="arial">Arial</div>
-            <div class="adapt-dropdown-item" data-value="verdana">Verdana</div>
-            <div class="adapt-dropdown-item" data-value="helvetica">Helvetica</div>
-            <div class="adapt-dropdown-item" data-value="calibri">Calibri</div>
+                <span id="adapt-dropdown-label" style="flex: 1; text-align: left;">Page Default</span>
+                <span id="adapt-dropdown-icon">▾</span>
+            </button>
+            
+            <div id="adapt-dropdown-menu" style="
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                background: ${menuColor};
+                border-radius: 4px;
+                width: 130px;
+                z-index: 9999999;
+                max-height: 120px;
+                overflow-y: scroll;
+                overflow-x: hidden;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            ">
+            ${ADAPT.getFontDropdownHTML()}
             </div>
         </div>
 

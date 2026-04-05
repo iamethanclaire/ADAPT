@@ -1,3 +1,7 @@
+// inject font styles
+const style = document.createElement("style");
+style.textContent = ADAPT.getFontStyles();
+adaptShadow.appendChild(style);
 
 // style buttons
 adaptShadow.querySelectorAll("button").forEach(btn => {
@@ -12,8 +16,64 @@ adaptShadow.querySelectorAll("button").forEach(btn => {
   btn.style.justifyContent = "center";
 
   btn.addEventListener("mouseenter", () => btn.style.background = hoverColor);
-  btn.addEventListener("mouseleave", () => btn.style.background = "transparent");
+  btn.addEventListener("mouseleave", () => {
+    if (btn.id === "adapt-dropdown-btn" && dropdownMenu.style.display === "block") return;
+    btn.style.background = "transparent";
 });
+});
+
+// dropdown
+const dropdownBtn = adaptShadow.getElementById("adapt-dropdown-btn");
+const dropdownMenu = adaptShadow.getElementById("adapt-dropdown-menu");
+const dropdownArrow = adaptShadow.getElementById("adapt-dropdown-icon");
+
+dropdownBtn.addEventListener("click", () => {
+    const isOpen = dropdownMenu.style.display === "block";
+    dropdownMenu.style.display = isOpen ? "none" : "block";
+    dropdownArrow.style.transform = isOpen ? "rotate(0deg)" : "rotate(180deg) translateY(-2px)";
+    dropdownBtn.style.background = isOpen ? "transparent" : hoverColor;
+});
+
+// close when clicking elsewhere inside shadow
+adaptShadow.addEventListener("click", (e) => {
+    if (!e.target.closest("#adapt-dropdown")) {
+        dropdownMenu.style.display = "none";
+        dropdownArrow.textContent = "▾";
+        dropdownBtn.style.background = "transparent";
+    }
+});
+
+// close when clicking outside shadow
+document.addEventListener("click", (e) => {
+    const path = e.composedPath();
+    const insideDropdown = path.some(el => el.id === "adapt-dropdown");
+    if (!insideDropdown) {
+        dropdownMenu.style.display = "none";
+        dropdownArrow.textContent = "▾";
+        dropdownBtn.style.background = "transparent";
+    }
+});
+
+// hover over dropdown items
+adaptShadow.querySelectorAll(".adapt-dropdown-item").forEach(item => {
+    item.style.padding = "8px 12px";
+    item.style.cursor = "pointer";
+    item.style.color = textColor;
+    item.style.borderBottom = `1px solid ${borderColor}`;
+
+    item.addEventListener("mouseenter", () => item.style.background = hoverColor);
+    item.addEventListener("mouseleave", () => item.style.background = "transparent");
+    item.addEventListener("click", () => {
+        const font = item.getAttribute("data-value");
+        const fontObj = ADAPT.fonts.find(f => f.value === font);
+        const label = adaptShadow.getElementById("adapt-dropdown-label");
+        label.textContent = item.textContent;
+        label.style.fontFamily = font === "page-default" ? "inherit" : `"${fontObj.label}", sans-serif`;
+        dropdownMenu.style.display = "none";
+        dropdownBtn.style.background = "transparent";
+    });
+});
+
 
 // style inputs
 adaptShadow.querySelectorAll("input").forEach(inpt => {
@@ -48,44 +108,4 @@ tab.addEventListener("click", () => {
   toolbar.style.display = "flex";
   document.body.style.marginTop = "48px";
   tab.style.display = "none";
-});
-
-// dropdown
-const dropdownBtn = adaptShadow.getElementById("adapt-dropdown-btn");
-const dropdownMenu = adaptShadow.getElementById("adapt-dropdown-menu");
-
-dropdownBtn.addEventListener("click", () => {
-  const isOpen = dropdownMenu.style.display === "block";
-  dropdownMenu.style.display = isOpen ? "none" : "block";
-});
-
-// show dropdown 
-adaptShadow.addEventListener("click", (e) => {
-    if (!e.target.closest("#adapt-dropdown")) {
-        dropdownMenu.style.display = "none";
-    }
-});
-
-// hide dropdown when clicking outside
-document.addEventListener("click", (e) => {
-    const path = e.composedPath();
-    const insideDropdown = path.some(el => el.id === "adapt-dropdown");
-    if (!insideDropdown) {
-        dropdownMenu.style.display = "none";
-    }
-});
-
-// hover
-adaptShadow.querySelectorAll(".adapt-dropdown-item").forEach(item => {
-  item.style.padding = "8px 12px";
-  item.style.cursor = "pointer";
-  item.style.color = textColor;
-
-  item.addEventListener("mouseenter", () => item.style.background = hoverColor);
-  item.addEventListener("mouseleave", () => item.style.background = "transparent");
-
-  item.addEventListener("click", () => {
-    dropdownBtn.textContent = item.textContent + "▾";
-    dropdownMenu.style.display = "none";
-  });
 });

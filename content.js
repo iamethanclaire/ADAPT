@@ -68,6 +68,7 @@ reset.textContent = `
   }
   .adapt-dropdown-item {
     font-size: 14px;
+    font-weight: normal;
   }
 `;
 shadow.appendChild(reset);
@@ -77,6 +78,22 @@ tab.innerHTML = getTabHTML(logoSrc);
 
 shadow.appendChild(tab);
 shadow.appendChild(toolbar);
+
+// inject font styles
+const fontStyle = document.createElement("style");
+fontStyle.textContent = ADAPT.getFontStyles();
+shadow.appendChild(fontStyle);
+
+// preload fonts
+ADAPT.fonts
+    .filter(f => f.url)
+    .forEach(f => {
+        const font = new FontFace(f.label, `url(${f.url})`);
+        font.load().then(loaded => {
+            document.fonts.add(loaded);
+        });
+    });
+
 document.body.style.marginTop = "48px";
 // expose shadow to files
 var adaptShadow = shadow;
