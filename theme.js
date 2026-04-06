@@ -7,6 +7,7 @@ var ADAPT = {
     get borderColor() { return this.prefersDark ? "#444" : "#cccccc";},
     get hoverColor() { return this.prefersDark ? "#363636" : "#efefef"; },
     get menuColor() { return this.prefersDark ? "#1e1e1e" : "#ffffff"; },
+    get selectedColor() { return this.prefersDark ? "#007acc" : "#007acc"; },
 
     fonts: [
     { label: "Page Default", value: "page-default", family: "inherit" },

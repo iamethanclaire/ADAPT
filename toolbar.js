@@ -3,23 +3,40 @@ const style = document.createElement("style");
 style.textContent = ADAPT.getFontStyles();
 adaptShadow.appendChild(style);
 
+// for communication with backend
+const activeButtons = new Set();
+
 // style buttons
 adaptShadow.querySelectorAll("button").forEach(btn => {
-  btn.style.background = "transparent";
-  btn.style.color = textColor;
-  btn.style.border = "none";
-  btn.style.padding = "4px 8px";
-  btn.style.borderRadius = "4px";
-  btn.style.cursor = "pointer";
-  btn.style.display = "flex";
-  btn.style.alignItems = "center";
-  btn.style.justifyContent = "center";
-
-  btn.addEventListener("mouseenter", () => btn.style.background = hoverColor);
-  btn.addEventListener("mouseleave", () => {
-    if (btn.id === "adapt-dropdown-btn" && dropdownMenu.style.display === "block") return;
     btn.style.background = "transparent";
-});
+    btn.style.color = textColor;
+    btn.style.border = "none";
+    btn.style.padding = "4px 8px";
+    btn.style.borderRadius = "4px";
+    btn.style.cursor = "pointer";
+    btn.style.display = "flex";
+    btn.style.alignItems = "center";
+    btn.style.justifyContent = "center";
+
+    btn.addEventListener("click", () => {
+        if (btn.id === "adapt-dropdown-btn") return;
+        if (btn.id === "adapt-bold" || btn.id === "adapt-italic" || btn.id === "adapt-underline") {
+            if (activeButtons.has(btn.id)) {
+                activeButtons.delete(btn.id);
+                btn.style.background = "transparent";
+            } else {
+                activeButtons.add(btn.id);
+                btn.style.background = selectedColor;
+            }
+        }
+    });
+
+    btn.addEventListener("mouseenter", () => btn.style.background = hoverColor);
+    btn.addEventListener("mouseleave", () => {
+        if (btn.id === "adapt-dropdown-btn" && dropdownMenu.style.display === "block") return;
+        if (activeButtons.has(btn.id)) return; // keep highlight if active
+        btn.style.background = "transparent";
+    });
 });
 
 // dropdown

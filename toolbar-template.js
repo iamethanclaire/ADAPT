@@ -1,6 +1,6 @@
 // inner html for toolbar
 function getToolbarHTML(logoSrc) {
-    const { textColor, borderColor, bgColor, menuColor } = ADAPT;
+    const { textColor, borderColor, bgColor, menuColor, selectedColor} = ADAPT;
     return `
         <img id="adapt-logo" src="${logoSrc}" alt="A.D.A.P.T" style="height: 32px; margin-left: 16px; margin-right: 16px;">
 
@@ -15,6 +15,7 @@ function getToolbarHTML(logoSrc) {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                user-select: none;
             ">
                 <span id="adapt-dropdown-label" style="flex: 1; text-align: left;">Page Default</span>
                 <span id="adapt-dropdown-icon">▾</span>
@@ -33,6 +34,7 @@ function getToolbarHTML(logoSrc) {
                 overflow-y: scroll;
                 overflow-x: hidden;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                user-select: none;
             ">
             ${ADAPT.getFontDropdownHTML()}
             </div>
