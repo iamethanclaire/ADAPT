@@ -124,6 +124,15 @@ function getToolbarHTML(logoSrc) {
 
         <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
 
+        <button id="adapt-highlight">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12.0078 18.0421L21.6847 5.26093L17.8944 2L6.70136 13.4768M12.0078 18.0421L6.70136 13.4768M12.0078 18.0421L7.88292 19.7699L7.23073 20.528M6.70136 13.4768L5.60874 17.8134L4.95656 18.5714M7.23073 20.528L4.95656 18.5714M7.23073 20.528L5.92636 22.0441L3 20.8456L4.95656 18.5714"/>
+            </svg>
+        </button>
+
+
+        <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
+
         <button id="adapt-define">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
