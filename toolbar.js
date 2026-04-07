@@ -20,7 +20,10 @@ adaptShadow.querySelectorAll("button").forEach(btn => {
 
     btn.addEventListener("click", () => {
         if (btn.id === "adapt-dropdown-btn") return;
-        if (btn.id === "adapt-bold" || btn.id === "adapt-italic" || btn.id === "adapt-underline") {
+        if (btn.id === "adapt-bold" || btn.id === "adapt-italic" || btn.id === "adapt-underline"
+            || btn.id === "adapt-define" || btn.id === "adapt-speak" || btn.id === "adapt-highlight"
+            || btn.id === "adapt-line-guide"
+        ) {
             if (activeButtons.has(btn.id)) {
                 activeButtons.delete(btn.id);
                 btn.style.background = "transparent";
@@ -47,7 +50,7 @@ const dropdownArrow = adaptShadow.getElementById("adapt-dropdown-icon");
 dropdownBtn.addEventListener("click", () => {
     const isOpen = dropdownMenu.style.display === "block";
     dropdownMenu.style.display = isOpen ? "none" : "block";
-    dropdownArrow.style.transform = isOpen ? "rotate(0deg)" : "rotate(180deg) translateY(-2px)";
+    dropdownArrow.style.transform = isOpen ? "rotate(0deg)" : "rotate(180deg) translateY(-2px)";    // change arrow direction
     dropdownBtn.style.background = isOpen ? "transparent" : hoverColor;
 });
 

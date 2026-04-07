@@ -151,6 +151,12 @@ function getToolbarHTML(logoSrc) {
             </svg>
         </button>
 
+        <button id="adapt-note">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 15V4H4V21H14M21 15L14 21M21 15H14V21"/>
+            </svg>
+        </button>
+
         <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
 
         <button id="adapt-define">
