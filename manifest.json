@@ -17,7 +17,10 @@
         "theme.js",
         "toolbar-template.js",
         "content.js",
-        "toolbar.js"
+        "toolbar.js",
+        "processing/size.js",
+        "processing/leading.js",
+        "processing/spacing.js"
       ]
     }
   ],

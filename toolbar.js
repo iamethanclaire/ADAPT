@@ -20,6 +20,25 @@ adaptShadow.querySelectorAll("button").forEach(btn => {
     btn.style.alignItems = "center";
     btn.style.justifyContent = "center";
 
+    btn.addEventListener("mouseenter", () => {
+        const hoverBg = activeButtons.has(btn.id) ? (btn.id === "adapt-bold" || btn.id === "adapt-italic" || btn.id === "adapt-underline" ? hoverSelectedAlterationColor : hoverSelectedToolColor) : hoverColor;
+        btn.style.background = hoverBg;
+    });
+    btn.addEventListener("mouseleave", () => {
+        if (btn.id === "adapt-dropdown-btn" && dropdownMenu.style.display === "block") return;
+        if (activeButtons.has(btn.id)) { // keep highlight if active
+            if (btn.id === "adapt-bold" || btn.id === "adapt-italic" || btn.id === "adapt-underline") {
+                btn.style.background = selectedAlterationColor;
+            } else {
+                btn.style.background = selectedToolColor;
+            }
+        }
+        else { btn.style.background = "transparent" };
+    });
+});
+
+// input for buttons
+adaptShadow.querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
         if (btn.id === "adapt-dropdown-btn") return;
         if (btn.id === "adapt-bold" || btn.id === "adapt-italic" || btn.id === "adapt-underline") {
@@ -112,23 +131,82 @@ adaptShadow.querySelectorAll("button").forEach(btn => {
                 btn.style.background = selectedToolColor;
             }
         }
-    });
 
-    btn.addEventListener("mouseenter", () => {
-        const hoverBg = activeButtons.has(btn.id) ? (btn.id === "adapt-bold" || btn.id === "adapt-italic" || btn.id === "adapt-underline" ? hoverSelectedAlterationColor : hoverSelectedToolColor) : hoverColor;
-        btn.style.background = hoverBg;
-    });
-    btn.addEventListener("mouseleave", () => {
-        if (btn.id === "adapt-dropdown-btn" && dropdownMenu.style.display === "block") return;
-        if (activeButtons.has(btn.id)) { // keep highlight if active
-            if (btn.id === "adapt-bold" || btn.id === "adapt-italic" || btn.id === "adapt-underline") {
-                btn.style.background = selectedAlterationColor;
-            } else {
-                btn.style.background = selectedToolColor;
-            }
+        // reference size.js
+        if (btn.id === "adapt-decrease-size") {
+            decreaseSize();
+        } else if (btn.id === "adapt-increase-size") {
+            increaseSize();
         }
-        else { btn.style.background = "transparent" };
+
+        // reference leading.js
+        if (btn.id === "adapt-decrease-leading") {
+            decreaseLeading();
+        } else if (btn.id === "adapt-increase-leading") {
+            increaseLeading();
+        }
+
+        // reference spacing.js
+        if (btn.id === "adapt-decrease-spacing") {
+            decreaseSpacing();
+        } else if (btn.id === "adapt-increase-spacing") {
+            increaseSpacing();
+        }
+
     });
+});
+
+/* keyboard shortcuts:
+    CMD + SHIFT + H for highlight
+    CMD + SHIFT + B for bold
+    CMD + SHIFT + I for italic
+    CMD + SHIFT + U for underline
+    CMD + SHIFT + L for line guide
+    CMD + SHIFT + D for define
+    CMD + SHIFT + S for speak
+    CMD + SHIFT + J for note
+    CTRL + ALT + , for decrease size
+    CTRL + ALT + . for increase size
+    CTRL + ALT + UP for decrease leading
+    CTRL + ALT + DOWN for increase leading
+    CTRL + ALT + LEFT for decrease spacing
+    CTRL + ALT + RIGHT for increase spacing
+*/
+
+document.addEventListener("keydown", (e) => {
+    const tag = e.target.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) return;
+
+    const ctrlOrMeta = e.ctrlKey || e.metaKey;
+    const shift = e.shiftKey;
+    const alt = e.altKey;
+    const key = e.key.toUpperCase();
+
+    // Ctrl+Shift+letter for text formatting
+    if (ctrlOrMeta && shift && !alt) {
+        switch (key) {
+            case "H": e.preventDefault(); adaptShadow.getElementById("adapt-highlight").click(); break;
+            case "B": e.preventDefault(); adaptShadow.getElementById("adapt-bold").click(); break;
+            case "I": e.preventDefault(); adaptShadow.getElementById("adapt-italic").click(); break;
+            case "U": e.preventDefault(); adaptShadow.getElementById("adapt-underline").click(); break;
+            case "L": e.preventDefault(); adaptShadow.getElementById("adapt-line-guide").click(); break;
+            case "D": e.preventDefault(); adaptShadow.getElementById("adapt-define").click(); break;
+            case "S": e.preventDefault(); adaptShadow.getElementById("adapt-speak").click(); break;
+            case "J": e.preventDefault(); adaptShadow.getElementById("adapt-note").click(); break;
+        }
+    }
+
+    // Ctrl+Alt+number for sizing and spacing
+    if (e.ctrlKey && alt && !shift) {
+        switch (e.key) {
+            case "ArrowUp": e.preventDefault(); adaptShadow.getElementById("adapt-increase-leading").click(); break;
+            case "ArrowDown": e.preventDefault(); adaptShadow.getElementById("adapt-decrease-leading").click(); break;
+            case "ArrowLeft": e.preventDefault(); adaptShadow.getElementById("adapt-decrease-spacing").click(); break;
+            case "ArrowRight": e.preventDefault(); adaptShadow.getElementById("adapt-increase-spacing").click(); break;
+            case ".": e.preventDefault(); adaptShadow.getElementById("adapt-increase-size").click(); break;
+            case ",": e.preventDefault(); adaptShadow.getElementById("adapt-decrease-size").click(); break;
+        }
+    }
 });
 
 // dropdown
@@ -184,7 +262,6 @@ adaptShadow.querySelectorAll(".adapt-dropdown-item").forEach(item => {
     });
 });
 
-
 // style inputs
 adaptShadow.querySelectorAll("input").forEach(inpt => {
     inpt.style.background = inputColor;
@@ -194,9 +271,21 @@ adaptShadow.querySelectorAll("input").forEach(inpt => {
     inpt.style.padding = "4px 8px";
     inpt.style.borderRadius = "4px";
     inpt.style.cursor = "text";
+    inpt.style.textAlign = "center";
+    inpt.style.outline = "none";
     inpt.style.display = "flex";
     inpt.style.alignItems = "center";
     inpt.style.justifyContent = "center";
+});
+
+// add focus and blur handlers to all inputs, change border color
+adaptShadow.querySelectorAll("input").forEach(inpt => {
+    inpt.addEventListener("focus", (e) => {
+        e.target.style.border = `1px solid ${selectedInputBorderColor}`;
+    });
+    inpt.addEventListener("blur", (e) => {
+        e.target.style.border = `1px solid ${borderColor}`;
+    });
 });
 
 // toggle active state

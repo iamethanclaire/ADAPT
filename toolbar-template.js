@@ -91,7 +91,7 @@ function getToolbarHTML(logoSrc) {
             </svg>
         </button>
 
-        <input id="adapt-ldeading-value" type="text" name="adapt-size" placeholder="100%" style="width: auto; max-width: 48px; height: 28px;">
+        <input id="adapt-leading-value" type="text" name="adapt-size" placeholder="100%" style="width: auto; max-width: 48px; height: 28px;">
 
         <button id="adapt-increase-leading">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
@@ -114,7 +114,7 @@ function getToolbarHTML(logoSrc) {
             </svg>
         </button>
 
-        <input id="adapt-ldeading-spacing" type="text" name="adapt-size" placeholder="100%" style="width: auto; max-width: 48px; height: 28px;">
+        <input id="adapt-spacing-value" type="text" name="adapt-size" placeholder="100%" style="width: auto; max-width: 48px; height: 28px;">
 
         <button id="adapt-increase-spacing">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
