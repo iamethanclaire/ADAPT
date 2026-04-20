@@ -3,6 +3,7 @@
 A.D.A.P.T. is a web browser extension that allows readers to alter the text on web pages to fit their needs.
 
 keyboard shortcuts:
+    CMD + SHIFT + P to toggle extension power
     CMD + SHIFT + H for highlight
     CMD + SHIFT + B for bold
     CMD + SHIFT + I for italic

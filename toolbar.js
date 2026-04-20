@@ -156,23 +156,7 @@ adaptShadow.querySelectorAll("button").forEach(btn => {
     });
 });
 
-/* keyboard shortcuts:
-    CMD + SHIFT + H for highlight
-    CMD + SHIFT + B for bold
-    CMD + SHIFT + I for italic
-    CMD + SHIFT + U for underline
-    CMD + SHIFT + L for line guide
-    CMD + SHIFT + D for define
-    CMD + SHIFT + S for speak
-    CMD + SHIFT + J for note
-    CTRL + ALT + , for decrease size
-    CTRL + ALT + . for increase size
-    CTRL + ALT + UP for decrease leading
-    CTRL + ALT + DOWN for increase leading
-    CTRL + ALT + LEFT for decrease spacing
-    CTRL + ALT + RIGHT for increase spacing
-*/
-
+// keyboard shortcuts
 document.addEventListener("keydown", (e) => {
     const tag = e.target.tagName;
     if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) return;
@@ -185,6 +169,7 @@ document.addEventListener("keydown", (e) => {
     // Ctrl+Shift+letter for text formatting
     if (ctrlOrMeta && shift && !alt) {
         switch (key) {
+            case "P": e.preventDefault(); logo.click(); break
             case "H": e.preventDefault(); adaptShadow.getElementById("adapt-highlight").click(); break;
             case "B": e.preventDefault(); adaptShadow.getElementById("adapt-bold").click(); break;
             case "I": e.preventDefault(); adaptShadow.getElementById("adapt-italic").click(); break;
@@ -193,6 +178,13 @@ document.addEventListener("keydown", (e) => {
             case "D": e.preventDefault(); adaptShadow.getElementById("adapt-define").click(); break;
             case "S": e.preventDefault(); adaptShadow.getElementById("adapt-speak").click(); break;
             case "J": e.preventDefault(); adaptShadow.getElementById("adapt-note").click(); break;
+            case "E": e.preventDefault();
+                if (toolbar.style.display === "none") {
+                    tab.click();
+                } else {
+                    adaptShadow.getElementById("adapt-hide").click();
+                }
+                break;
         }
     }
 
