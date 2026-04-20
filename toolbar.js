@@ -147,7 +147,7 @@ dropdownBtn.addEventListener("click", () => {
 adaptShadow.addEventListener("click", (e) => {
     if (!e.target.closest("#adapt-dropdown")) {
         dropdownMenu.style.display = "none";
-        dropdownArrow.textContent = "▾";
+        dropdownArrow.style.transform = "rotate(0deg)";
         dropdownBtn.style.background = "transparent";
     }
 });
@@ -158,7 +158,7 @@ document.addEventListener("click", (e) => {
     const insideDropdown = path.some(el => el.id === "adapt-dropdown");
     if (!insideDropdown) {
         dropdownMenu.style.display = "none";
-        dropdownArrow.textContent = "▾";
+        dropdownArrow.style.transform = "rotate(0deg)";
         dropdownBtn.style.background = "transparent";
     }
 });
@@ -177,6 +177,7 @@ adaptShadow.querySelectorAll(".adapt-dropdown-item").forEach(item => {
         const fontObj = ADAPT.fonts.find(f => f.value === font);
         const label = adaptShadow.getElementById("adapt-dropdown-label");
         label.textContent = item.textContent;
+        dropdownArrow.style.transform = "rotate(0deg)";
         label.style.fontFamily = font === "page-default" ? "inherit" : `"${fontObj.label}", sans-serif`;
         dropdownMenu.style.display = "none";
         dropdownBtn.style.background = "transparent";
