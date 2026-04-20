@@ -1,3 +1,5 @@
+// const { act } = require("react");
+
 // inject font styles
 const style = document.createElement("style");
 style.textContent = ADAPT.getFontStyles();
@@ -20,25 +22,112 @@ adaptShadow.querySelectorAll("button").forEach(btn => {
 
     btn.addEventListener("click", () => {
         if (btn.id === "adapt-dropdown-btn") return;
-        if (btn.id === "adapt-bold" || btn.id === "adapt-italic" || btn.id === "adapt-underline"
-            || btn.id === "adapt-define" || btn.id === "adapt-speak" || btn.id === "adapt-highlight"
-            || btn.id === "adapt-line-guide"
-        ) {
+        if (btn.id === "adapt-bold" || btn.id === "adapt-italic" || btn.id === "adapt-underline") {
             if (activeButtons.has(btn.id)) {
                 activeButtons.delete(btn.id);
                 btn.style.background = "transparent";
             } else {
                 activeButtons.add(btn.id);
-                btn.style.background = selectedColor;
+                btn.style.background = selectedAlterationColor;
+            }
+        }
+        if (btn.id === "adapt-highlight") {
+            if (activeButtons.has(btn.id)) {
+                activeButtons.delete(btn.id);
+                btn.style.background = "transparent";
+            } else {
+                activeButtons.add(btn.id);
+                activeButtons.delete("adapt-define");
+                activeButtons.delete("adapt-speak");
+                activeButtons.delete("adapt-line-guide");
+                activeButtons.delete("adapt-note");
+                adaptShadow.getElementById("adapt-define").style.background = "transparent";
+                adaptShadow.getElementById("adapt-speak").style.background = "transparent";
+                adaptShadow.getElementById("adapt-line-guide").style.background = "transparent";
+                adaptShadow.getElementById("adapt-note").style.background = "transparent";
+                btn.style.background = selectedToolColor;
+            }
+        } else if (btn.id === "adapt-define") {
+            if (activeButtons.has(btn.id)) {
+                activeButtons.delete(btn.id);
+                btn.style.background = "transparent";
+            } else {
+                activeButtons.add(btn.id);
+                activeButtons.delete("adapt-highlight");
+                activeButtons.delete("adapt-speak");
+                activeButtons.delete("adapt-line-guide");
+                activeButtons.delete("adapt-note");
+                adaptShadow.getElementById("adapt-highlight").style.background = "transparent";
+                adaptShadow.getElementById("adapt-speak").style.background = "transparent";
+                adaptShadow.getElementById("adapt-line-guide").style.background = "transparent";
+                adaptShadow.getElementById("adapt-note").style.background = "transparent";
+                btn.style.background = selectedToolColor;
+            }
+        } else if (btn.id === "adapt-speak") {
+            if (activeButtons.has(btn.id)) {
+                activeButtons.delete(btn.id);
+                btn.style.background = "transparent";
+            } else {
+                activeButtons.add(btn.id);
+                activeButtons.delete("adapt-highlight");
+                activeButtons.delete("adapt-define");
+                activeButtons.delete("adapt-line-guide");
+                activeButtons.delete("adapt-note");
+                adaptShadow.getElementById("adapt-highlight").style.background = "transparent";
+                adaptShadow.getElementById("adapt-define").style.background = "transparent";
+                adaptShadow.getElementById("adapt-line-guide").style.background = "transparent";
+                adaptShadow.getElementById("adapt-note").style.background = "transparent";
+                btn.style.background = selectedToolColor;
+            }
+        } else if (btn.id === "adapt-line-guide") {
+            if (activeButtons.has(btn.id)) {
+                activeButtons.delete(btn.id);
+                btn.style.background = "transparent";
+            } else {
+                activeButtons.add(btn.id);
+                activeButtons.delete("adapt-highlight");
+                activeButtons.delete("adapt-speak");
+                activeButtons.delete("adapt-define");
+                activeButtons.delete("adapt-note");
+                adaptShadow.getElementById("adapt-highlight").style.background = "transparent";
+                adaptShadow.getElementById("adapt-define").style.background = "transparent";
+                adaptShadow.getElementById("adapt-speak").style.background = "transparent";
+                adaptShadow.getElementById("adapt-note").style.background = "transparent";
+                btn.style.background = selectedToolColor;
+            }
+        } else if (btn.id === "adapt-note") {
+            if (activeButtons.has(btn.id)) {
+                activeButtons.delete(btn.id);
+                btn.style.background = "transparent";
+            } else {
+                activeButtons.add(btn.id);
+                activeButtons.delete("adapt-highlight");
+                activeButtons.delete("adapt-speak");
+                activeButtons.delete("adapt-define");
+                activeButtons.delete("adapt-line-guide");
+                adaptShadow.getElementById("adapt-highlight").style.background = "transparent";
+                adaptShadow.getElementById("adapt-define").style.background = "transparent";
+                adaptShadow.getElementById("adapt-speak").style.background = "transparent";
+                adaptShadow.getElementById("adapt-line-guide").style.background = "transparent";
+                btn.style.background = selectedToolColor;
             }
         }
     });
 
-    btn.addEventListener("mouseenter", () => btn.style.background = hoverColor);
+    btn.addEventListener("mouseenter", () => {
+        const hoverBg = activeButtons.has(btn.id) ? (btn.id === "adapt-bold" || btn.id === "adapt-italic" || btn.id === "adapt-underline" ? hoverSelectedAlterationColor : hoverSelectedToolColor) : hoverColor;
+        btn.style.background = hoverBg;
+    });
     btn.addEventListener("mouseleave", () => {
         if (btn.id === "adapt-dropdown-btn" && dropdownMenu.style.display === "block") return;
-        if (activeButtons.has(btn.id)) return; // keep highlight if active
-        btn.style.background = "transparent";
+        if (activeButtons.has(btn.id)) { // keep highlight if active
+            if (btn.id === "adapt-bold" || btn.id === "adapt-italic" || btn.id === "adapt-underline") {
+                btn.style.background = selectedAlterationColor;
+            } else {
+                btn.style.background = selectedToolColor;
+            }
+        }
+        else { btn.style.background = "transparent" };
     });
 });
 
@@ -97,35 +186,35 @@ adaptShadow.querySelectorAll(".adapt-dropdown-item").forEach(item => {
 
 // style inputs
 adaptShadow.querySelectorAll("input").forEach(inpt => {
-  inpt.style.background = inputColor;
-  inpt.style.color = textColor;
-  inpt.style.fontSize = "12px";
-  inpt.style.border = `1px solid ${borderColor}`;
-  inpt.style.padding = "4px 8px";
-  inpt.style.borderRadius = "4px";
-  inpt.style.cursor = "text";
-  inpt.style.display = "flex";
-  inpt.style.alignItems = "center";
-  inpt.style.justifyContent = "center";
+    inpt.style.background = inputColor;
+    inpt.style.color = textColor;
+    inpt.style.fontSize = "12px";
+    inpt.style.border = `1px solid ${borderColor}`;
+    inpt.style.padding = "4px 8px";
+    inpt.style.borderRadius = "4px";
+    inpt.style.cursor = "text";
+    inpt.style.display = "flex";
+    inpt.style.alignItems = "center";
+    inpt.style.justifyContent = "center";
 });
 
 // toggle active state
 let isActive = true;
 const logo = adaptShadow.getElementById("adapt-logo");
 logo.addEventListener("click", () => {
-  isActive = !isActive;
-  logo.src = isActive ? logoSrc : logoInactiveSrc;
+    isActive = !isActive;
+    logo.src = isActive ? logoSrc : logoInactiveSrc;
 });
 
 // hide/show toolbar
 adaptShadow.getElementById("adapt-hide").addEventListener("click", () => {
-  toolbar.style.display = "none";
-  document.body.style.marginTop = "0px";
-  tab.style.display = "block";
+    toolbar.style.display = "none";
+    document.body.style.marginTop = "0px";
+    tab.style.display = "block";
 });
 
 tab.addEventListener("click", () => {
-  toolbar.style.display = "flex";
-  document.body.style.marginTop = "48px";
-  tab.style.display = "none";
+    toolbar.style.display = "flex";
+    document.body.style.marginTop = "48px";
+    tab.style.display = "none";
 });

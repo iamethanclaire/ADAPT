@@ -6,8 +6,11 @@ var ADAPT = {
     get textColor() { return this.prefersDark ? "#ffffff" : "#000000";},
     get borderColor() { return this.prefersDark ? "#444" : "#cccccc";},
     get hoverColor() { return this.prefersDark ? "#363636" : "#efefef"; },
+    get hoverSelectedToolColor() { return this.prefersDark ? "#006fba" : "#006fba"; },
+    get hoverSelectedAlterationColor() { return this.prefersDark ? "#ba0000" : "#ba0000"; },
     get menuColor() { return this.prefersDark ? "#1e1e1e" : "#ffffff"; },
-    get selectedColor() { return this.prefersDark ? "#007acc" : "#007acc"; },
+    get selectedToolColor() { return this.prefersDark ? "#007acc" : "#007acc"; },
+    get selectedAlterationColor() { return this.prefersDark ? "#cc0000" : "#cc0000"; },
 
     fonts: [
     { label: "Page Default", value: "page-default", family: "inherit" },
