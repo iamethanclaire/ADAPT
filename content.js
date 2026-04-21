@@ -1,5 +1,5 @@
 
-const { bgColor, textColor, borderColor, inputColor, hoverColor, hoverSelectedToolColor, hoverSelectedAlterationColor, selectedToolColor, selectedAlterationColor, selectedInputBorderColor} = ADAPT;
+const { bgColor, textColor, borderColor, inputColor, hoverColor, hoverSelectedToolColor, hoverSelectedAlterationColor, selectedToolColor, selectedAlterationColor, selectedInputBorderColor, lineColor} = ADAPT;
 
 const logoSrc = chrome.runtime.getURL("images/icon-48.png");
 const logoInactiveSrc = chrome.runtime.getURL("images/icon-48-inactive.png");

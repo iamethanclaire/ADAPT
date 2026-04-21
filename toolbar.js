@@ -139,6 +139,7 @@ adaptShadow.querySelectorAll("button").forEach(btn => {
                 adaptShadow.getElementById("adapt-note").style.background = "transparent";
                 btn.style.background = selectedToolColor;
             }
+            toggleLineGuide(activeButtons.has(btn.id));
         } else if (btn.id === "adapt-note") {
             if (activeButtons.has(btn.id)) {
                 activeButtons.delete(btn.id);

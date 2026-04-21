@@ -12,6 +12,7 @@ var ADAPT = {
     get selectedToolColor() { return this.prefersDark ? "#007acc" : "#9fd7f5"; },
     get selectedAlterationColor() { return this.prefersDark ? "#cc0000" : "rgb(250, 113, 106)"; },
     get selectedInputBorderColor() { return this.prefersDark ? "#ffffff" : "#1e1e1e"; },
+    get lineColor() { return this.prefersDark ? "#888888" : "#666666"; },
 
     fonts: [
     { label: "Page Default", value: "page-default", family: "inherit" },
