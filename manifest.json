@@ -18,6 +18,7 @@
         "toolbar-template.js",
         "content.js",
         "toolbar.js",
+        "processing/font.js",
         "processing/size.js",
         "processing/leading.js",
         "processing/spacing.js",

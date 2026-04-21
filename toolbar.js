@@ -90,6 +90,7 @@ adaptShadow.querySelectorAll("button").forEach(btn => {
                 adaptShadow.getElementById("adapt-note").style.background = "transparent";
                 btn.style.background = selectedToolColor;
             }
+            //toggleHighlight(activeButtons.has(btn.id));
         } else if (btn.id === "adapt-define") {
             if (activeButtons.has(btn.id)) {
                 activeButtons.delete(btn.id);
@@ -273,6 +274,7 @@ adaptShadow.querySelectorAll(".adapt-dropdown-item").forEach(item => {
         label.textContent = item.textContent;
         dropdownArrow.style.transform = "rotate(0deg)";
         label.style.fontFamily = font === "page-default" ? "inherit" : `"${fontObj.label}", sans-serif`;
+        changeFont(font, fontObj);
         dropdownMenu.style.display = "none";
         dropdownBtn.style.background = "transparent";
     });
