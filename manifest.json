@@ -20,7 +20,10 @@
         "toolbar.js",
         "processing/size.js",
         "processing/leading.js",
-        "processing/spacing.js"
+        "processing/spacing.js",
+        "processing/bold.js",
+        "processing/italics.js",
+        "processing/underline.js"
       ]
     }
   ],

@@ -41,7 +41,7 @@ adaptShadow.querySelectorAll("button").forEach(btn => {
 adaptShadow.querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
         if (btn.id === "adapt-dropdown-btn") return;
-        if (btn.id === "adapt-bold" || btn.id === "adapt-italic" || btn.id === "adapt-underline") {
+        if (btn.id === "adapt-underline") {
             if (activeButtons.has(btn.id)) {
                 activeButtons.delete(btn.id);
                 btn.style.background = "transparent";
@@ -49,7 +49,31 @@ adaptShadow.querySelectorAll("button").forEach(btn => {
                 activeButtons.add(btn.id);
                 btn.style.background = selectedAlterationColor;
             }
+            toggleUnderline(activeButtons.has(btn.id));
         }
+
+        if(btn.id === "adapt-bold") {
+            if (activeButtons.has(btn.id)) {
+                activeButtons.delete(btn.id);
+                btn.style.background = "transparent";
+            } else {
+                activeButtons.add(btn.id);
+                btn.style.background = selectedAlterationColor;
+            }
+            toggleBold(activeButtons.has(btn.id));
+        }
+
+        if(btn.id === "adapt-italic") {
+            if (activeButtons.has(btn.id)) {
+                activeButtons.delete(btn.id);
+                btn.style.background = "transparent";
+            } else {
+                activeButtons.add(btn.id);
+                btn.style.background = selectedAlterationColor;
+            }
+            toggleItalics(activeButtons.has(btn.id));
+        }
+        
         if (btn.id === "adapt-highlight") {
             if (activeButtons.has(btn.id)) {
                 activeButtons.delete(btn.id);
