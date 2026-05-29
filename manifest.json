@@ -25,7 +25,8 @@
         "processing/bold.js",
         "processing/italics.js",
         "processing/underline.js",
-        "tools/lineguide.js"
+        "tools/lineguide.js",
+        "tools/highlighter.js"
       ]
     }
   ],
