@@ -17,7 +17,6 @@
         "theme.js",
         "toolbar-template.js",
         "content.js",
-        "toolbar.js",
         "processing/font.js",
         "processing/size.js",
         "processing/leading.js",
@@ -26,7 +25,9 @@
         "processing/italics.js",
         "processing/underline.js",
         "tools/lineguide.js",
-        "tools/highlighter.js"
+        "tools/highlighter.js",
+        "tools/note.js",
+        "toolbar.js"
       ]
     }
   ],

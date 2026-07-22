@@ -1,329 +1,646 @@
 // const { act } = require("react");
 
-// inject font styles
+// Inject font styles.
 const style = document.createElement("style");
 style.textContent = ADAPT.getFontStyles();
 adaptShadow.appendChild(style);
 
-// for communication with backend
+// Tracks active toolbar buttons.
 const activeButtons = new Set();
 
-// style buttons
-adaptShadow.querySelectorAll("button").forEach(btn => {
-    btn.style.background = "transparent";
-    btn.style.color = textColor;
-    btn.style.border = "none";
-    btn.style.padding = "4px 8px";
-    btn.style.borderRadius = "4px";
-    btn.style.cursor = "pointer";
-    btn.style.display = "flex";
-    btn.style.alignItems = "center";
-    btn.style.justifyContent = "center";
+function getToolbarButton(buttonId) {
+    return adaptShadow.getElementById(buttonId);
+}
 
-    btn.addEventListener("mouseenter", () => {
-        const hoverBg = activeButtons.has(btn.id) ? (btn.id === "adapt-bold" || btn.id === "adapt-italic" || btn.id === "adapt-underline" ? hoverSelectedAlterationColor : hoverSelectedToolColor) : hoverColor;
-        btn.style.background = hoverBg;
+function resetButtonBackground(buttonId) {
+    const button = getToolbarButton(buttonId);
+
+    if (button) {
+        button.style.background = "transparent";
+    }
+}
+
+function deactivateHighlightTool() {
+    activeButtons.delete("adapt-highlight");
+    resetButtonBackground("adapt-highlight");
+    toggleHighlight(false);
+}
+
+function deactivateLineGuideTool() {
+    activeButtons.delete("adapt-line-guide");
+    resetButtonBackground("adapt-line-guide");
+    toggleLineGuide(false);
+}
+
+function deactivateNoteTool() {
+    activeButtons.delete("adapt-note");
+    resetButtonBackground("adapt-note");
+
+    if (window.ADAPTNote) {
+        window.ADAPTNote.toggle(false);
+    }
+}
+
+function deactivateDefineTool() {
+    activeButtons.delete("adapt-define");
+    resetButtonBackground("adapt-define");
+}
+
+function deactivateSpeakTool() {
+    activeButtons.delete("adapt-speak");
+    resetButtonBackground("adapt-speak");
+}
+
+// Style toolbar buttons.
+adaptShadow
+    .querySelectorAll("button")
+    .forEach((btn) => {
+        btn.style.background = "transparent";
+        btn.style.color = textColor;
+        btn.style.border = "none";
+        btn.style.padding = "4px 8px";
+        btn.style.borderRadius = "4px";
+        btn.style.cursor = "pointer";
+        btn.style.display = "flex";
+        btn.style.alignItems = "center";
+        btn.style.justifyContent = "center";
+
+        btn.addEventListener("mouseenter", () => {
+            const isTextAlteration =
+                btn.id === "adapt-bold" ||
+                btn.id === "adapt-italic" ||
+                btn.id === "adapt-underline";
+
+            const hoverBackground =
+                activeButtons.has(btn.id)
+                    ? isTextAlteration
+                        ? hoverSelectedAlterationColor
+                        : hoverSelectedToolColor
+                    : hoverColor;
+
+            btn.style.background = hoverBackground;
+        });
+
+        btn.addEventListener("mouseleave", () => {
+            if (
+                btn.id === "adapt-dropdown-btn" &&
+                dropdownMenu.style.display === "block"
+            ) {
+                return;
+            }
+
+            if (activeButtons.has(btn.id)) {
+                const isTextAlteration =
+                    btn.id === "adapt-bold" ||
+                    btn.id === "adapt-italic" ||
+                    btn.id === "adapt-underline";
+
+                btn.style.background = isTextAlteration
+                    ? selectedAlterationColor
+                    : selectedToolColor;
+            } else {
+                btn.style.background = "transparent";
+            }
+        });
     });
-    btn.addEventListener("mouseleave", () => {
-        if (btn.id === "adapt-dropdown-btn" && dropdownMenu.style.display === "block") return;
-        if (activeButtons.has(btn.id)) { // keep highlight if active
-            if (btn.id === "adapt-bold" || btn.id === "adapt-italic" || btn.id === "adapt-underline") {
-                btn.style.background = selectedAlterationColor;
-            } else {
-                btn.style.background = selectedToolColor;
+
+// Handle toolbar button input.
+adaptShadow
+    .querySelectorAll("button")
+    .forEach((btn) => {
+        btn.addEventListener("click", () => {
+            if (btn.id === "adapt-dropdown-btn") {
+                return;
             }
-        }
-        else { btn.style.background = "transparent" };
+
+            /*
+             * Underline
+             */
+            if (btn.id === "adapt-underline") {
+                if (activeButtons.has(btn.id)) {
+                    activeButtons.delete(btn.id);
+                    btn.style.background = "transparent";
+                } else {
+                    activeButtons.add(btn.id);
+                    btn.style.background =
+                        selectedAlterationColor;
+                }
+
+                toggleUnderline(
+                    activeButtons.has(btn.id)
+                );
+            }
+
+            /*
+             * Bold
+             */
+            if (btn.id === "adapt-bold") {
+                if (activeButtons.has(btn.id)) {
+                    activeButtons.delete(btn.id);
+                    btn.style.background = "transparent";
+                } else {
+                    activeButtons.add(btn.id);
+                    btn.style.background =
+                        selectedAlterationColor;
+                }
+
+                toggleBold(
+                    activeButtons.has(btn.id)
+                );
+            }
+
+            /*
+             * Italics
+             */
+            if (btn.id === "adapt-italic") {
+                if (activeButtons.has(btn.id)) {
+                    activeButtons.delete(btn.id);
+                    btn.style.background = "transparent";
+                } else {
+                    activeButtons.add(btn.id);
+                    btn.style.background =
+                        selectedAlterationColor;
+                }
+
+                toggleItalics(
+                    activeButtons.has(btn.id)
+                );
+            }
+
+            /*
+             * Highlight
+             *
+             * Highlight cannot be active with Note.
+             * It also remains exclusive with the other
+             * primary tools.
+             */
+            if (btn.id === "adapt-highlight") {
+                if (activeButtons.has(btn.id)) {
+                    deactivateHighlightTool();
+                } else {
+                    deactivateDefineTool();
+                    deactivateSpeakTool();
+                    deactivateNoteTool();
+
+                    activeButtons.add(btn.id);
+                    btn.style.background =
+                        selectedToolColor;
+
+                    toggleHighlight(true);
+                }
+            }
+
+            /*
+             * Define
+             */
+            else if (btn.id === "adapt-define") {
+                if (activeButtons.has(btn.id)) {
+                    deactivateDefineTool();
+                } else {
+                    deactivateHighlightTool();
+                    deactivateSpeakTool();
+                    deactivateLineGuideTool();
+                    deactivateNoteTool();
+
+                    activeButtons.add(btn.id);
+                    btn.style.background =
+                        selectedToolColor;
+                }
+            }
+
+            /*
+             * Speak
+             */
+            else if (btn.id === "adapt-speak") {
+                if (activeButtons.has(btn.id)) {
+                    deactivateSpeakTool();
+                } else {
+                    deactivateHighlightTool();
+                    deactivateDefineTool();
+                    deactivateLineGuideTool();
+                    deactivateNoteTool();
+
+                    activeButtons.add(btn.id);
+                    btn.style.background =
+                        selectedToolColor;
+                }
+            }
+
+            /*
+             * Line Guide
+             *
+             * Line Guide is allowed to remain active
+             * at the same time as Note.
+             */
+            else if (btn.id === "adapt-line-guide") {
+                if (activeButtons.has(btn.id)) {
+                    deactivateLineGuideTool();
+                } else {
+                    deactivateHighlightTool();
+                    deactivateDefineTool();
+                    deactivateSpeakTool();
+
+                    /*
+                     * Do not deactivate Note here.
+                     */
+                    activeButtons.add(btn.id);
+                    btn.style.background =
+                        selectedToolColor;
+
+                    toggleLineGuide(true);
+                }
+            }
+
+            /*
+             * Sticky Note
+             *
+             * Note is allowed to remain active at the
+             * same time as Line Guide.
+             */
+            else if (btn.id === "adapt-note") {
+                if (!window.ADAPTNote) {
+                    console.error(
+                        "[ADAPT] tools/note.js was not loaded"
+                    );
+                    return;
+                }
+
+                if (activeButtons.has(btn.id)) {
+                    deactivateNoteTool();
+                } else {
+                    deactivateHighlightTool();
+                    deactivateDefineTool();
+                    deactivateSpeakTool();
+
+                    /*
+                     * Do not deactivate Line Guide here.
+                     */
+                    activeButtons.add(btn.id);
+                    btn.style.background =
+                        selectedToolColor;
+
+                    window.ADAPTNote.toggle(true);
+                }
+            }
+
+            // Reference size.js.
+            if (btn.id === "adapt-decrease-size") {
+                decreaseSize();
+            } else if (
+                btn.id === "adapt-increase-size"
+            ) {
+                increaseSize();
+            }
+
+            // Reference leading.js.
+            if (btn.id === "adapt-decrease-leading") {
+                decreaseLeading();
+            } else if (
+                btn.id === "adapt-increase-leading"
+            ) {
+                increaseLeading();
+            }
+
+            // Reference spacing.js.
+            if (btn.id === "adapt-decrease-spacing") {
+                decreaseSpacing();
+            } else if (
+                btn.id === "adapt-increase-spacing"
+            ) {
+                increaseSpacing();
+            }
+        });
     });
-});
 
-// input for buttons
-adaptShadow.querySelectorAll("button").forEach(btn => {
-    btn.addEventListener("click", () => {
-        if (btn.id === "adapt-dropdown-btn") return;
-        if (btn.id === "adapt-underline") {
-            if (activeButtons.has(btn.id)) {
-                activeButtons.delete(btn.id);
-                btn.style.background = "transparent";
-            } else {
-                activeButtons.add(btn.id);
-                btn.style.background = selectedAlterationColor;
-            }
-            toggleUnderline(activeButtons.has(btn.id));
-        }
+// Keyboard shortcuts.
+document.addEventListener("keydown", (event) => {
+    const target = event.target;
+    const tag = target?.tagName;
 
-        if(btn.id === "adapt-bold") {
-            if (activeButtons.has(btn.id)) {
-                activeButtons.delete(btn.id);
-                btn.style.background = "transparent";
-            } else {
-                activeButtons.add(btn.id);
-                btn.style.background = selectedAlterationColor;
-            }
-            toggleBold(activeButtons.has(btn.id));
-        }
+    if (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        target?.isContentEditable
+    ) {
+        return;
+    }
 
-        if(btn.id === "adapt-italic") {
-            if (activeButtons.has(btn.id)) {
-                activeButtons.delete(btn.id);
-                btn.style.background = "transparent";
-            } else {
-                activeButtons.add(btn.id);
-                btn.style.background = selectedAlterationColor;
-            }
-            toggleItalics(activeButtons.has(btn.id));
-        }
-        
-        if (btn.id === "adapt-highlight") {
-            if (activeButtons.has(btn.id)) {
-                activeButtons.delete(btn.id);
-                btn.style.background = "transparent";
-            } else {
-                activeButtons.add(btn.id);
-                activeButtons.delete("adapt-define");
-                activeButtons.delete("adapt-speak");
-                activeButtons.delete("adapt-line-guide");
-                activeButtons.delete("adapt-note");
-                adaptShadow.getElementById("adapt-define").style.background = "transparent";
-                adaptShadow.getElementById("adapt-speak").style.background = "transparent";
-                adaptShadow.getElementById("adapt-line-guide").style.background = "transparent";
-                adaptShadow.getElementById("adapt-note").style.background = "transparent";
-                btn.style.background = selectedToolColor;
-            }
-            toggleHighlight(activeButtons.has(btn.id));
-        } else if (btn.id === "adapt-define") {
-            if (activeButtons.has(btn.id)) {
-                activeButtons.delete(btn.id);
-                btn.style.background = "transparent";
-            } else {
-                activeButtons.add(btn.id);
-                activeButtons.delete("adapt-highlight");
-                activeButtons.delete("adapt-speak");
-                activeButtons.delete("adapt-line-guide");
-                activeButtons.delete("adapt-note");
-                adaptShadow.getElementById("adapt-highlight").style.background = "transparent";
-                adaptShadow.getElementById("adapt-speak").style.background = "transparent";
-                adaptShadow.getElementById("adapt-line-guide").style.background = "transparent";
-                adaptShadow.getElementById("adapt-note").style.background = "transparent";
-                btn.style.background = selectedToolColor;
-            }
-        } else if (btn.id === "adapt-speak") {
-            if (activeButtons.has(btn.id)) {
-                activeButtons.delete(btn.id);
-                btn.style.background = "transparent";
-            } else {
-                activeButtons.add(btn.id);
-                activeButtons.delete("adapt-highlight");
-                activeButtons.delete("adapt-define");
-                activeButtons.delete("adapt-line-guide");
-                activeButtons.delete("adapt-note");
-                adaptShadow.getElementById("adapt-highlight").style.background = "transparent";
-                adaptShadow.getElementById("adapt-define").style.background = "transparent";
-                adaptShadow.getElementById("adapt-line-guide").style.background = "transparent";
-                adaptShadow.getElementById("adapt-note").style.background = "transparent";
-                btn.style.background = selectedToolColor;
-            }
-        } else if (btn.id === "adapt-line-guide") {
-            if (activeButtons.has(btn.id)) {
-                activeButtons.delete(btn.id);
-                btn.style.background = "transparent";
-            } else {
-                activeButtons.add(btn.id);
-                activeButtons.delete("adapt-highlight");
-                activeButtons.delete("adapt-speak");
-                activeButtons.delete("adapt-define");
-                activeButtons.delete("adapt-note");
-                adaptShadow.getElementById("adapt-highlight").style.background = "transparent";
-                adaptShadow.getElementById("adapt-define").style.background = "transparent";
-                adaptShadow.getElementById("adapt-speak").style.background = "transparent";
-                adaptShadow.getElementById("adapt-note").style.background = "transparent";
-                btn.style.background = selectedToolColor;
-            }
-            toggleLineGuide(activeButtons.has(btn.id));
-        } else if (btn.id === "adapt-note") {
-            if (activeButtons.has(btn.id)) {
-                activeButtons.delete(btn.id);
-                btn.style.background = "transparent";
-            } else {
-                activeButtons.add(btn.id);
-                activeButtons.delete("adapt-highlight");
-                activeButtons.delete("adapt-speak");
-                activeButtons.delete("adapt-define");
-                activeButtons.delete("adapt-line-guide");
-                adaptShadow.getElementById("adapt-highlight").style.background = "transparent";
-                adaptShadow.getElementById("adapt-define").style.background = "transparent";
-                adaptShadow.getElementById("adapt-speak").style.background = "transparent";
-                adaptShadow.getElementById("adapt-line-guide").style.background = "transparent";
-                btn.style.background = selectedToolColor;
-            }
-        }
+    const ctrlOrMeta =
+        event.ctrlKey || event.metaKey;
 
-        // reference size.js
-        if (btn.id === "adapt-decrease-size") {
-            decreaseSize();
-        } else if (btn.id === "adapt-increase-size") {
-            increaseSize();
-        }
+    const shift = event.shiftKey;
+    const alt = event.altKey;
+    const key = event.key.toUpperCase();
 
-        // reference leading.js
-        if (btn.id === "adapt-decrease-leading") {
-            decreaseLeading();
-        } else if (btn.id === "adapt-increase-leading") {
-            increaseLeading();
-        }
-
-        // reference spacing.js
-        if (btn.id === "adapt-decrease-spacing") {
-            decreaseSpacing();
-        } else if (btn.id === "adapt-increase-spacing") {
-            increaseSpacing();
-        }
-
-    });
-});
-
-// keyboard shortcuts
-document.addEventListener("keydown", (e) => {
-    const tag = e.target.tagName;
-    if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) return;
-
-    const ctrlOrMeta = e.ctrlKey || e.metaKey;
-    const shift = e.shiftKey;
-    const alt = e.altKey;
-    const key = e.key.toUpperCase();
-
-    // Ctrl+Shift+letter for text formatting
+    // Ctrl/Cmd + Shift + letter.
     if (ctrlOrMeta && shift && !alt) {
         switch (key) {
-            case "P": e.preventDefault(); logo.click(); break
-            case "H": e.preventDefault(); adaptShadow.getElementById("adapt-highlight").click(); break;
-            case "B": e.preventDefault(); adaptShadow.getElementById("adapt-bold").click(); break;
-            case "I": e.preventDefault(); adaptShadow.getElementById("adapt-italic").click(); break;
-            case "U": e.preventDefault(); adaptShadow.getElementById("adapt-underline").click(); break;
-            case "L": e.preventDefault(); adaptShadow.getElementById("adapt-line-guide").click(); break;
-            case "D": e.preventDefault(); adaptShadow.getElementById("adapt-define").click(); break;
-            case "S": e.preventDefault(); adaptShadow.getElementById("adapt-speak").click(); break;
-            case "J": e.preventDefault(); adaptShadow.getElementById("adapt-note").click(); break;
-            case "E": e.preventDefault();
+            case "P":
+                event.preventDefault();
+                logo.click();
+                break;
+
+            case "H":
+                event.preventDefault();
+                getToolbarButton(
+                    "adapt-highlight"
+                ).click();
+                break;
+
+            case "B":
+                event.preventDefault();
+                getToolbarButton(
+                    "adapt-bold"
+                ).click();
+                break;
+
+            case "I":
+                event.preventDefault();
+                getToolbarButton(
+                    "adapt-italic"
+                ).click();
+                break;
+
+            case "U":
+                event.preventDefault();
+                getToolbarButton(
+                    "adapt-underline"
+                ).click();
+                break;
+
+            case "L":
+                event.preventDefault();
+                getToolbarButton(
+                    "adapt-line-guide"
+                ).click();
+                break;
+
+            case "D":
+                event.preventDefault();
+                getToolbarButton(
+                    "adapt-define"
+                ).click();
+                break;
+
+            case "S":
+                event.preventDefault();
+                getToolbarButton(
+                    "adapt-speak"
+                ).click();
+                break;
+
+            case "J":
+                event.preventDefault();
+                getToolbarButton(
+                    "adapt-note"
+                ).click();
+                break;
+
+            case "E":
+                event.preventDefault();
+
                 if (toolbar.style.display === "none") {
                     tab.click();
                 } else {
-                    adaptShadow.getElementById("adapt-hide").click();
+                    getToolbarButton(
+                        "adapt-hide"
+                    ).click();
                 }
+
                 break;
         }
     }
 
-    // Ctrl+Alt+number for sizing and spacing
-    if (e.ctrlKey && alt && !shift) {
-        switch (e.key) {
-            case "ArrowUp": e.preventDefault(); adaptShadow.getElementById("adapt-increase-leading").click(); break;
-            case "ArrowDown": e.preventDefault(); adaptShadow.getElementById("adapt-decrease-leading").click(); break;
-            case "ArrowLeft": e.preventDefault(); adaptShadow.getElementById("adapt-decrease-spacing").click(); break;
-            case "ArrowRight": e.preventDefault(); adaptShadow.getElementById("adapt-increase-spacing").click(); break;
-            case ".": e.preventDefault(); adaptShadow.getElementById("adapt-increase-size").click(); break;
-            case ",": e.preventDefault(); adaptShadow.getElementById("adapt-decrease-size").click(); break;
+    // Ctrl + Alt sizing and spacing shortcuts.
+    if (event.ctrlKey && alt && !shift) {
+        switch (event.key) {
+            case "ArrowUp":
+                event.preventDefault();
+                getToolbarButton(
+                    "adapt-increase-leading"
+                ).click();
+                break;
+
+            case "ArrowDown":
+                event.preventDefault();
+                getToolbarButton(
+                    "adapt-decrease-leading"
+                ).click();
+                break;
+
+            case "ArrowLeft":
+                event.preventDefault();
+                getToolbarButton(
+                    "adapt-decrease-spacing"
+                ).click();
+                break;
+
+            case "ArrowRight":
+                event.preventDefault();
+                getToolbarButton(
+                    "adapt-increase-spacing"
+                ).click();
+                break;
+
+            case ".":
+                event.preventDefault();
+                getToolbarButton(
+                    "adapt-increase-size"
+                ).click();
+                break;
+
+            case ",":
+                event.preventDefault();
+                getToolbarButton(
+                    "adapt-decrease-size"
+                ).click();
+                break;
         }
     }
 });
 
-// dropdown
-const dropdownBtn = adaptShadow.getElementById("adapt-dropdown-btn");
-const dropdownMenu = adaptShadow.getElementById("adapt-dropdown-menu");
-const dropdownArrow = adaptShadow.getElementById("adapt-dropdown-icon");
+// Dropdown elements.
+const dropdownBtn =
+    getToolbarButton("adapt-dropdown-btn");
+
+const dropdownMenu =
+    getToolbarButton("adapt-dropdown-menu");
+
+const dropdownArrow =
+    getToolbarButton("adapt-dropdown-icon");
 
 dropdownBtn.addEventListener("click", () => {
-    const isOpen = dropdownMenu.style.display === "block";
-    dropdownMenu.style.display = isOpen ? "none" : "block";
-    dropdownArrow.style.transform = isOpen ? "rotate(0deg)" : "rotate(180deg) translateY(-2px)";    // change arrow direction
-    dropdownBtn.style.background = isOpen ? "transparent" : hoverColor;
+    const isOpen =
+        dropdownMenu.style.display === "block";
+
+    dropdownMenu.style.display =
+        isOpen ? "none" : "block";
+
+    dropdownArrow.style.transform = isOpen
+        ? "rotate(0deg)"
+        : "rotate(180deg) translateY(-2px)";
+
+    dropdownBtn.style.background = isOpen
+        ? "transparent"
+        : hoverColor;
 });
 
-// close when clicking elsewhere inside shadow
-adaptShadow.addEventListener("click", (e) => {
-    if (!e.target.closest("#adapt-dropdown")) {
+// Close when clicking elsewhere inside the shadow root.
+adaptShadow.addEventListener("click", (event) => {
+    if (!event.target.closest("#adapt-dropdown")) {
         dropdownMenu.style.display = "none";
-        dropdownArrow.style.transform = "rotate(0deg)";
-        dropdownBtn.style.background = "transparent";
+        dropdownArrow.style.transform =
+            "rotate(0deg)";
+        dropdownBtn.style.background =
+            "transparent";
     }
 });
 
-// close when clicking outside shadow
-document.addEventListener("click", (e) => {
-    const path = e.composedPath();
-    const insideDropdown = path.some(el => el.id === "adapt-dropdown");
+// Close when clicking outside the shadow root.
+document.addEventListener("click", (event) => {
+    const path = event.composedPath();
+
+    const insideDropdown = path.some(
+        (element) =>
+            element.id === "adapt-dropdown"
+    );
+
     if (!insideDropdown) {
         dropdownMenu.style.display = "none";
-        dropdownArrow.style.transform = "rotate(0deg)";
-        dropdownBtn.style.background = "transparent";
+        dropdownArrow.style.transform =
+            "rotate(0deg)";
+        dropdownBtn.style.background =
+            "transparent";
     }
 });
 
-// hover over dropdown items
-adaptShadow.querySelectorAll(".adapt-dropdown-item").forEach(item => {
-    item.style.padding = "8px 12px";
-    item.style.cursor = "pointer";
-    item.style.color = textColor;
-    item.style.borderBottom = `1px solid ${borderColor}`;
+// Dropdown item hover and selection.
+adaptShadow
+    .querySelectorAll(".adapt-dropdown-item")
+    .forEach((item) => {
+        item.style.padding = "8px 12px";
+        item.style.cursor = "pointer";
+        item.style.color = textColor;
+        item.style.borderBottom =
+            `1px solid ${borderColor}`;
 
-    item.addEventListener("mouseenter", () => item.style.background = hoverColor);
-    item.addEventListener("mouseleave", () => item.style.background = "transparent");
-    item.addEventListener("click", () => {
-        const font = item.getAttribute("data-value");
-        const fontObj = ADAPT.fonts.find(f => f.value === font);
-        const label = adaptShadow.getElementById("adapt-dropdown-label");
-        label.textContent = item.textContent;
-        dropdownArrow.style.transform = "rotate(0deg)";
-        label.style.fontFamily = font === "page-default" ? "inherit" : `"${fontObj.label}", sans-serif`;
-        changeFont(font, fontObj);
-        dropdownMenu.style.display = "none";
-        dropdownBtn.style.background = "transparent";
+        item.addEventListener(
+            "mouseenter",
+            () => {
+                item.style.background =
+                    hoverColor;
+            }
+        );
+
+        item.addEventListener(
+            "mouseleave",
+            () => {
+                item.style.background =
+                    "transparent";
+            }
+        );
+
+        item.addEventListener("click", () => {
+            const font =
+                item.getAttribute("data-value");
+
+            const fontObj = ADAPT.fonts.find(
+                (fontEntry) =>
+                    fontEntry.value === font
+            );
+
+            const label = getToolbarButton(
+                "adapt-dropdown-label"
+            );
+
+            label.textContent = item.textContent;
+
+            dropdownArrow.style.transform =
+                "rotate(0deg)";
+
+            label.style.fontFamily =
+                font === "page-default"
+                    ? "inherit"
+                    : `"${fontObj.label}", sans-serif`;
+
+            changeFont(font, fontObj);
+
+            dropdownMenu.style.display = "none";
+            dropdownBtn.style.background =
+                "transparent";
+        });
     });
-});
 
-// style inputs
-adaptShadow.querySelectorAll("input").forEach(inpt => {
-    inpt.style.background = inputColor;
-    inpt.style.color = textColor;
-    inpt.style.fontSize = "12px";
-    inpt.style.border = `1px solid ${borderColor}`;
-    inpt.style.padding = "4px 8px";
-    inpt.style.borderRadius = "4px";
-    inpt.style.cursor = "text";
-    inpt.style.textAlign = "center";
-    inpt.style.outline = "none";
-    inpt.style.display = "flex";
-    inpt.style.alignItems = "center";
-    inpt.style.justifyContent = "center";
-});
+// Style toolbar inputs.
+adaptShadow
+    .querySelectorAll("input")
+    .forEach((input) => {
+        input.style.background = inputColor;
+        input.style.color = textColor;
+        input.style.fontSize = "12px";
+        input.style.border =
+            `1px solid ${borderColor}`;
+        input.style.padding = "4px 8px";
+        input.style.borderRadius = "4px";
+        input.style.cursor = "text";
+        input.style.textAlign = "center";
+        input.style.outline = "none";
+        input.style.display = "flex";
+        input.style.alignItems = "center";
+        input.style.justifyContent = "center";
 
-// add focus and blur handlers to all inputs, change border color
-adaptShadow.querySelectorAll("input").forEach(inpt => {
-    inpt.addEventListener("focus", (e) => {
-        e.target.style.border = `1px solid ${selectedInputBorderColor}`;
+        input.addEventListener(
+            "focus",
+            (event) => {
+                event.target.style.border =
+                    `1px solid ${selectedInputBorderColor}`;
+            }
+        );
+
+        input.addEventListener(
+            "blur",
+            (event) => {
+                event.target.style.border =
+                    `1px solid ${borderColor}`;
+            }
+        );
     });
-    inpt.addEventListener("blur", (e) => {
-        e.target.style.border = `1px solid ${borderColor}`;
-    });
-});
 
-// toggle active state
+// Toggle the extension active state.
 let isActive = true;
-const logo = adaptShadow.getElementById("adapt-logo");
+
+const logo = getToolbarButton("adapt-logo");
+
 logo.addEventListener("click", () => {
     isActive = !isActive;
-    logo.src = isActive ? logoSrc : logoInactiveSrc;
+
+    logo.src = isActive
+        ? logoSrc
+        : logoInactiveSrc;
 });
 
-// hide/show toolbar
-adaptShadow.getElementById("adapt-hide").addEventListener("click", () => {
-    toolbar.style.display = "none";
-    document.body.style.marginTop = "0px";
-    tab.style.display = "block";
-});
+// Hide/show toolbar.
+getToolbarButton("adapt-hide")
+    .addEventListener("click", () => {
+        toolbar.style.display = "none";
+        document.body.style.marginTop = "0px";
+        tab.style.display = "block";
+
+        /*
+         * Recalculate proportional note positions
+         * after the page layout changes.
+         */
+        window.requestAnimationFrame(() => {
+            window.ADAPTNote?.reposition();
+        });
+    });
 
 tab.addEventListener("click", () => {
     toolbar.style.display = "flex";
     document.body.style.marginTop = "48px";
     tab.style.display = "none";
+
+    window.requestAnimationFrame(() => {
+        window.ADAPTNote?.reposition();
+    });
 });
