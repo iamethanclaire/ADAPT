@@ -90,7 +90,7 @@ adaptShadow.querySelectorAll("button").forEach(btn => {
                 adaptShadow.getElementById("adapt-note").style.background = "transparent";
                 btn.style.background = selectedToolColor;
             }
-            //toggleHighlight(activeButtons.has(btn.id));
+            toggleHighlight(activeButtons.has(btn.id));
         } else if (btn.id === "adapt-define") {
             if (activeButtons.has(btn.id)) {
                 activeButtons.delete(btn.id);
