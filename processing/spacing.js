@@ -1,50 +1,61 @@
 // Spacing functionality
 let spacing = 100;
-let spacingStep = 50; // this should be changable in settings
-let maxSpacing = 400; // this should be changable in settings
+let spacingStep = 25; // this should be changable in settings
+let maxSpacing = 200; // this should be changable in settings
 let minSpacing = 50; // this should be changable in settings
-
-const spacingSnapshot = new Map(); // original letter spacings
-let spacingSnapshotInitialized = false;
 
 const spacingInput = adaptShadow.getElementById("adapt-spacing-value");
 
 // Initialize spacing snapshot with original letter spacings
+const spacingSnapshot = new Map();
+let spacingSnapshotInitialized = false;
+
 function initializeSpacingSnapshot() {
     if (spacingSnapshotInitialized) return;
-    
-    const allElements = document.querySelectorAll('*');
-    allElements.forEach(el => {
-        const computedStyle = window.getComputedStyle(el);
-        const originalLetterSpacing = computedStyle.letterSpacing;
-        spacingSnapshot.set(el, originalLetterSpacing);
+
+    document.querySelectorAll("body, body *").forEach((el) => {
+        const computedSpacing = getComputedStyle(el).letterSpacing;
+
+        spacingSnapshot.set(el, {
+            // Save the existing inline declaration so it can be restored exactly.
+            inlineValue: el.style.getPropertyValue("letter-spacing"),
+            inlinePriority: el.style.getPropertyPriority("letter-spacing"),
+
+            // CSS "normal" is effectively zero for this calculation.
+            computedValue:
+                computedSpacing === "normal" ? "0px" : computedSpacing
+        });
     });
-    
+
     spacingSnapshotInitialized = true;
 }
 
-// Apply spacing multiplier to all elements
 function applySpacing(newSpacing) {
-    // Initialize snapshot if not done yet
-    if (!spacingSnapshotInitialized) {
-        initializeSpacingSnapshot();
-    }
-    
-    const multiplier = newSpacing / 100;
-    
-    spacingSnapshot.forEach((originalLetterSpacing, el) => {
-        if (el && el.isConnected) { // Check if element is still in DOM
-            const originalValue = parseFloat(originalLetterSpacing);
-            const originalUnit = originalLetterSpacing.replace(/[\d.-]/g, '');
-            
-            if (newSpacing === 100) {
-                // Revert to original
-                el.style.letterSpacing = originalLetterSpacing;
+    initializeSpacingSnapshot();
+
+    // Each 100% above/below the baseline changes spacing by 0.12em.
+    const spacingChange = ((newSpacing - 100) / 100) * 0.12;
+
+    spacingSnapshot.forEach((original, el) => {
+        if (!el.isConnected) return;
+
+        if (newSpacing === 100) {
+            // Restore the element's original inline styling.
+            if (original.inlineValue) {
+                el.style.setProperty(
+                    "letter-spacing",
+                    original.inlineValue,
+                    original.inlinePriority
+                );
             } else {
-                // Apply multiplier
-                const newValue = originalValue * multiplier;
-                el.style.letterSpacing = newValue + (originalUnit || 'px');
+                el.style.removeProperty("letter-spacing");
             }
+        } else {
+            el.style.setProperty(
+                "letter-spacing",
+                `calc(${original.computedValue} + ${spacingChange}em)`,
+                "important"
+            );
         }
     });
 }
