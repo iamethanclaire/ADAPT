@@ -236,7 +236,6 @@ adaptShadow
                 if (activeButtons.has(btn.id)) {
                     deactivateLineGuideTool();
                 } else {
-                    deactivateHighlightTool();
                     deactivateDefineTool();
                     deactivateSpeakTool();
 
