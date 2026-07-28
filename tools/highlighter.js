@@ -1,18 +1,11 @@
 // Persistent page highlighter.
 const highlighterColor = "#ffff00";
-const highlightSelector = ".adapt-highlight-span";
 let isHighlighting = false;
 let highlightRecords = [];
 
 (function initializeHighlighterStyles() {
-    let style = document.getElementById("adapt-highlighter-styles");
-
-    if (!style) {
-        style = document.createElement("style");
-        style.id = "adapt-highlighter-styles";
-        document.head.appendChild(style);
-    }
-
+    const style = document.createElement("style");
+    style.id = "adapt-highlighter-styles";
     style.textContent = `
         .adapt-highlight-span {
             background-color: transparent;
@@ -24,6 +17,7 @@ let highlightRecords = [];
             cursor: pointer;
         }
     `;
+    document.head.appendChild(style);
 })();
 
 function toggleHighlight(shouldHighlight) {
@@ -221,35 +215,17 @@ function saveHighlights() {
         });
 }
 
-function getNodeDepth(node) {
-    let depth = 0;
-    let current = node;
-
-    while (current?.parentNode) {
-        depth += 1;
-        current = current.parentNode;
-    }
-
-    return depth;
-}
-
-function unwrapHighlightSpan(span) {
-    const parent = span?.parentNode;
-
-    if (!parent) {
-        return;
-    }
-
-    while (span.firstChild) {
-        parent.insertBefore(span.firstChild, span);
-    }
-
-    span.remove();
-    parent.normalize();
-}
-
 function removeHighlight(highlightId, span) {
-    unwrapHighlightSpan(span);
+    const parent = span.parentNode;
+
+    if (parent) {
+        while (span.firstChild) {
+            parent.insertBefore(span.firstChild, span);
+        }
+
+        span.remove();
+        parent.normalize();
+    }
 
     highlightRecords = highlightRecords.filter(
         (record) => record.id !== highlightId
@@ -284,251 +260,35 @@ function wrapHighlightRange(range, record) {
     range.insertNode(span);
 }
 
-function rangesOverlap(
-    firstStart,
-    firstEnd,
-    secondStart,
-    secondEnd
-) {
-    return firstStart < secondEnd && secondStart < firstEnd;
-}
-
-function getRenderedHighlightLocation(span) {
-    const block = getHighlightBlock(span);
-
-    try {
-        return {
-            block,
-            startOffset: getTextOffset(block, span, 0),
-            endOffset: getTextOffset(
-                block,
-                span,
-                span.childNodes.length
-            )
-        };
-    } catch {
-        return null;
-    }
-}
-
-/*
- * Remove rendered highlights that intersect a new selection.
- *
- * The selection is stored as text offsets before this function runs, so
- * unwrapping and normalizing the old spans cannot change the intended text.
- */
-function removeHighlightsOverlappingSegments(segments) {
-    const spansToRemove = [];
-    const recordIdsToRemove = new Set();
-
-    document
-        .querySelectorAll(highlightSelector)
-        .forEach((span) => {
-            const location = getRenderedHighlightLocation(span);
-
-            if (!location) {
-                return;
-            }
-
-            const overlapsSelection = segments.some(
-                (segment) =>
-                    segment.block === location.block &&
-                    rangesOverlap(
-                        segment.startOffset,
-                        segment.endOffset,
-                        location.startOffset,
-                        location.endOffset
-                    )
-            );
-
-            if (!overlapsSelection) {
-                return;
-            }
-
-            spansToRemove.push(span);
-
-            if (span.dataset.adaptHighlightId) {
-                recordIdsToRemove.add(
-                    span.dataset.adaptHighlightId
-                );
-            }
-        });
-
-    // Unwrap inner spans first so legacy nested highlights are also cleaned up.
-    spansToRemove
-        .sort(
-            (first, second) =>
-                getNodeDepth(second) - getNodeDepth(first)
-        )
-        .forEach(unwrapHighlightSpan);
-
-    if (recordIdsToRemove.size > 0) {
-        highlightRecords = highlightRecords.filter(
-            (record) => !recordIdsToRemove.has(record.id)
-        );
-    }
-
-    return recordIdsToRemove.size;
-}
-
-function createHighlightRecord(
-    block,
-    startOffset,
-    endOffset,
-    text
-) {
+function createHighlightRecord(range, block) {
     return {
         id: makeHighlightId(),
         blockPath: getHighlightBlockPath(block),
-        startOffset,
-        endOffset,
-        text
+        startOffset: getTextOffset(
+            block,
+            range.startContainer,
+            range.startOffset
+        ),
+        endOffset: getTextOffset(
+            block,
+            range.endContainer,
+            range.endOffset
+        ),
+        text: range.toString()
     };
 }
 
-function nodeIsInsideBlock(block, node) {
-    return node === block || block.contains(node);
-}
-
-function getSelectedTextNodes(selectionRange) {
-    const textNodes = [];
-    const commonAncestor = selectionRange.commonAncestorContainer;
-
-    if (commonAncestor.nodeType === Node.TEXT_NODE) {
-        const parent = commonAncestor.parentElement;
-
-        if (
-            parent &&
-            !parent.closest(
-                "script, style, [data-adapt-owned]"
-            )
-        ) {
-            textNodes.push(commonAncestor);
-        }
-
-        return textNodes;
-    }
-
-    const walker = document.createTreeWalker(
-        commonAncestor,
-        NodeFilter.SHOW_TEXT,
-        {
-            acceptNode(node) {
-                const parent = node.parentElement;
-
-                if (
-                    !parent ||
-                    parent.closest(
-                        "script, style, [data-adapt-owned]"
-                    )
-                ) {
-                    return NodeFilter.FILTER_REJECT;
-                }
-
-                return NodeFilter.FILTER_ACCEPT;
-            }
-        }
-    );
-
-    let textNode = walker.nextNode();
-
-    while (textNode) {
-        if (selectionRange.intersectsNode(textNode)) {
-            textNodes.push(textNode);
-        }
-
-        textNode = walker.nextNode();
-    }
-
-    return textNodes;
-}
-
-/*
- * Convert the live browser selection into stable offsets before changing
- * the DOM. A separate segment is used for each block-level element.
- */
-function captureSelectionSegments(selectionRange) {
-    const textNodes = getSelectedTextNodes(selectionRange);
-    const blocks = [];
-
-    textNodes.forEach((node) => {
-        const block = getHighlightBlock(node);
-
-        if (!blocks.includes(block)) {
-            blocks.push(block);
-        }
-    });
-
-    return blocks
-        .map((block) => {
-            let startOffset = 0;
-            let endOffset = getTextOffset(
-                block,
-                block,
-                block.childNodes.length
-            );
-
-            if (
-                nodeIsInsideBlock(
-                    block,
-                    selectionRange.startContainer
-                )
-            ) {
-                startOffset = getTextOffset(
-                    block,
-                    selectionRange.startContainer,
-                    selectionRange.startOffset
-                );
-            }
-
-            if (
-                nodeIsInsideBlock(
-                    block,
-                    selectionRange.endContainer
-                )
-            ) {
-                endOffset = getTextOffset(
-                    block,
-                    selectionRange.endContainer,
-                    selectionRange.endOffset
-                );
-            }
-
-            const range = createRangeFromTextOffsets(
-                block,
-                startOffset,
-                endOffset
-            );
-
-            if (
-                !range ||
-                range.collapsed ||
-                range.toString().trim().length === 0
-            ) {
-                return null;
-            }
-
-            return {
-                block,
-                startOffset,
-                endOffset,
-                text: range.toString()
-            };
-        })
-        .filter(Boolean);
-}
-
-function resolveStoredHighlight(record) {
+function restoreHighlightRecord(record) {
     let block;
 
     try {
         block = document.querySelector(record.blockPath);
     } catch {
-        return null;
+        return false;
     }
 
     if (!block) {
-        return null;
+        return false;
     }
 
     let startOffset = Number(record.startOffset);
@@ -545,7 +305,7 @@ function resolveStoredHighlight(record) {
         const locatedOffset = blockText.indexOf(record.text || "");
 
         if (locatedOffset < 0 || !record.text) {
-            return null;
+            return false;
         }
 
         startOffset = locatedOffset;
@@ -559,91 +319,43 @@ function resolveStoredHighlight(record) {
     );
 
     if (!range || range.collapsed) {
-        return null;
-    }
-
-    return {
-        block,
-        startOffset,
-        endOffset,
-        text: range.toString()
-    };
-}
-
-function restoreHighlightRecord(record) {
-    const resolved = resolveStoredHighlight(record);
-
-    if (!resolved) {
         return false;
     }
 
-    /*
-     * Old saved data may already contain overlapping records. Remove the
-     * smaller rendered highlight before restoring the current one so old
-     * data cannot recreate nested highlight spans.
-     */
-    removeHighlightsOverlappingSegments([resolved]);
-
-    const range = createRangeFromTextOffsets(
-        resolved.block,
-        resolved.startOffset,
-        resolved.endOffset
-    );
-
-    if (!range || range.collapsed) {
-        return false;
-    }
-
-    const normalizedRecord = {
+    wrapHighlightRange(range, {
         ...record,
-        id: record.id || makeHighlightId(),
-        blockPath: getHighlightBlockPath(resolved.block),
-        startOffset: resolved.startOffset,
-        endOffset: resolved.endOffset,
-        text: resolved.text
-    };
-
-    wrapHighlightRange(range, normalizedRecord);
-    highlightRecords.push(normalizedRecord);
+        startOffset,
+        endOffset
+    });
 
     return true;
 }
 
-function clearRenderedHighlights() {
-    Array.from(
-        document.querySelectorAll(highlightSelector)
-    )
-        .sort(
-            (first, second) =>
-                getNodeDepth(second) - getNodeDepth(first)
-        )
-        .forEach(unwrapHighlightSpan);
-}
-
 function restoreHighlights(records) {
-    clearRenderedHighlights();
+    document
+        .querySelectorAll(".adapt-highlight-span")
+        .forEach((span) => {
+            const parent = span.parentNode;
+
+            while (span.firstChild) {
+                parent?.insertBefore(span.firstChild, span);
+            }
+
+            span.remove();
+            parent?.normalize();
+        });
+
     highlightRecords = [];
 
     if (!Array.isArray(records)) {
         return;
     }
 
-    /*
-     * Restore shorter legacy records first. If old records overlap, a wider
-     * record is restored last and replaces the nested record.
-     */
-    [...records]
-        .sort((first, second) => {
-            const firstLength =
-                Number(first.endOffset) -
-                Number(first.startOffset);
-            const secondLength =
-                Number(second.endOffset) -
-                Number(second.startOffset);
-
-            return firstLength - secondLength;
-        })
-        .forEach(restoreHighlightRecord);
+    records.forEach((record) => {
+        if (restoreHighlightRecord(record)) {
+            highlightRecords.push({ ...record });
+        }
+    });
 }
 
 function handleHighlightSelection(event) {
@@ -667,54 +379,93 @@ function handleHighlightSelection(event) {
     if (
         !selection ||
         selection.isCollapsed ||
-        selection.toString().trim().length === 0 ||
-        selection.rangeCount === 0
+        selection.toString().trim().length === 0
     ) {
         return;
     }
 
     try {
         const selectionRange = selection.getRangeAt(0);
-        const segments =
-            captureSelectionSegments(selectionRange);
+        const textNodes = [];
+        const walker = document.createTreeWalker(
+            selectionRange.commonAncestorContainer,
+            NodeFilter.SHOW_TEXT
+        );
 
-        if (segments.length === 0) {
-            return;
+        if (
+            selectionRange.commonAncestorContainer.nodeType ===
+            Node.TEXT_NODE
+        ) {
+            textNodes.push(
+                selectionRange.commonAncestorContainer
+            );
         }
 
-        /*
-         * Keep only stable text offsets before unwrapping old highlights.
-         * The browser's live Range is no longer needed after this point.
-         */
-        selection.removeAllRanges();
-        removeHighlightsOverlappingSegments(segments);
+        let textNode = walker.nextNode();
+
+        while (textNode) {
+            if (selectionRange.intersectsNode(textNode)) {
+                textNodes.push(textNode);
+            }
+
+            textNode = walker.nextNode();
+        }
+
+        const blocks = [];
+
+        textNodes.forEach((node) => {
+            const block = getHighlightBlock(node);
+
+            if (!blocks.includes(block)) {
+                blocks.push(block);
+            }
+        });
 
         const newRecords = [];
 
-        segments.forEach((segment) => {
-            const range = createRangeFromTextOffsets(
-                segment.block,
-                segment.startOffset,
-                segment.endOffset
+        blocks.forEach((block) => {
+            const firstNode = textNodes.find(
+                (node) => getHighlightBlock(node) === block
             );
+            const lastNode = [...textNodes]
+                .reverse()
+                .find(
+                    (node) => getHighlightBlock(node) === block
+                );
 
-            if (!range || range.collapsed) {
+            if (!firstNode || !lastNode) {
                 return;
             }
 
-            const text = range.toString();
+            const blockRange = document.createRange();
+
+            blockRange.setStart(
+                firstNode,
+                firstNode === selectionRange.startContainer
+                    ? selectionRange.startOffset
+                    : 0
+            );
+            blockRange.setEnd(
+                lastNode,
+                lastNode === selectionRange.endContainer
+                    ? selectionRange.endOffset
+                    : lastNode.length
+            );
+
+            if (blockRange.collapsed) {
+                return;
+            }
+
             const record = createHighlightRecord(
-                segment.block,
-                segment.startOffset,
-                segment.endOffset,
-                text
+                blockRange,
+                block
             );
 
             if (!record.blockPath || !record.text) {
                 return;
             }
 
-            wrapHighlightRange(range, record);
+            wrapHighlightRange(blockRange, record);
             newRecords.push(record);
         });
 
@@ -722,6 +473,8 @@ function handleHighlightSelection(event) {
             highlightRecords.push(...newRecords);
             saveHighlights();
         }
+
+        selection.removeAllRanges();
     } catch (error) {
         console.error("[ADAPT] Error highlighting text:", error);
     }
