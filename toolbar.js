@@ -160,6 +160,11 @@
                 yRatio: settings.lineGuideYRatio
             }
         );
+
+        globalThis.ADAPTSpeak?.toggle(
+            settings.isActive &&
+                activeButtons.has("adapt-speak")
+        );
     }
 
     function applyAllSettings() {
@@ -428,6 +433,7 @@
                     !activeButtons.has("adapt-define");
                 setButtonActive("adapt-define", nextValue);
                 setButtonActive("adapt-speak", false);
+                globalThis.ADAPTSpeak?.toggle(false);
 
                 if (nextValue) {
                     saveAndApply({
@@ -451,6 +457,8 @@
                         lineGuideEnabled: false,
                         noteEnabled: false
                     });
+                } else {
+                    globalThis.ADAPTSpeak?.toggle(false);
                 }
                 break;
             }
