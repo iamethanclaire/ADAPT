@@ -1,3 +1,13 @@
-Highlight.js:
+Future Changes:
 
-highlighting certain elements alters the formatting.
+Unpaid:
+Change the step size of text size, spacing, leading
+Blur below line guide
+High-Contrast Color mode / Color Blind Mode
+Click-to-read mode
+
+Paid:
+View all notes: Opens a note that pulls all note content and displays it all at once
+Change Colors of line guide, highlighter, note
+Multi-Color Highlighter, Multi-Color notes (3 of each)
+Upload Custom Fonts

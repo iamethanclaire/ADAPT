@@ -37,6 +37,7 @@
     let nextNoteId = 1;
     let activeNoteId = null;
     let resizeAnimationFrame = null;
+    let isRestoringNotes = false;
 
     let overlay = null;
     let textarea = null;
@@ -51,6 +52,20 @@
         style.id = STYLE_ID;
 
         style.textContent = `
+            html.adapt-note-placement-mode
+                body > :not(#adapt-host):not([data-adapt-owned]),
+            html.adapt-note-placement-mode
+                body > :not(#adapt-host):not([data-adapt-owned]) * {
+                cursor: copy !important;
+            }
+
+            html:not(.adapt-extension-active)
+                .adapt-note-icon,
+            html:not(.adapt-extension-active)
+                .adapt-note-overlay {
+                display: none !important;
+            }
+
             .adapt-note-icon {
                 position: absolute;
 
@@ -286,6 +301,7 @@
 
         overlay = document.createElement("div");
         overlay.className = "adapt-note-overlay";
+        overlay.dataset.adaptOwned = "true";
         overlay.hidden = true;
         overlay.setAttribute("role", "presentation");
 
@@ -351,6 +367,7 @@
 
             note.text = textarea.value;
             updateIconLabel(note);
+            saveNotes({ debounce: true });
         });
     }
 
@@ -510,10 +527,20 @@
 
         note.element.remove();
         notes.delete(noteId);
+        saveNotes();
     }
 
-    function createNoteIcon(pageX, pageY) {
-        const noteId = nextNoteId++;
+    function createNoteIcon(
+        pageX,
+        pageY,
+        initialText = "",
+        options = {}
+    ) {
+        const noteId = Number.isInteger(options.id)
+            ? options.id
+            : nextNoteId;
+
+        nextNoteId = Math.max(nextNoteId, noteId + 1);
         const page = getPageDimensions();
 
         /*
@@ -536,6 +563,7 @@
 
         icon.type = "button";
         icon.className = "adapt-note-icon";
+        icon.dataset.adaptOwned = "true";
         icon.dataset.adaptNoteId = String(noteId);
 
         const iconImage = document.createElement("img");
@@ -555,7 +583,7 @@
             x: 0,
             y: 0,
 
-            text: "",
+            text: String(initialText || ""),
             element: icon
         };
 
@@ -582,6 +610,82 @@
 
         document.body.appendChild(icon);
         positionNote(note);
+
+        if (!options.skipSave && !isRestoringNotes) {
+            saveNotes();
+        }
+
+        return note;
+    }
+
+    function serializeNotes() {
+        return Array.from(notes.values()).map((note) => ({
+            id: note.id,
+            xRatio: note.xRatio,
+            yRatio: note.yRatio,
+            text: note.text
+        }));
+    }
+
+    function saveNotes(options = {}) {
+        if (isRestoringNotes) {
+            return;
+        }
+
+        globalThis.ADAPTStorage
+            ?.updatePage(
+                { notes: serializeNotes() },
+                { debounce: Boolean(options.debounce) }
+            )
+            .catch((error) => {
+                console.error(
+                    "[ADAPT] Could not save sticky notes:",
+                    error
+                );
+            });
+    }
+
+    function restoreNotes(savedNotes) {
+        isRestoringNotes = true;
+
+        closeNote();
+
+        notes.forEach((note) => {
+            note.element.remove();
+        });
+
+        notes.clear();
+        nextNoteId = 1;
+
+        if (Array.isArray(savedNotes)) {
+            const page = getPageDimensions();
+
+            savedNotes.forEach((savedNote) => {
+                const xRatio = Math.min(
+                    Math.max(Number(savedNote.xRatio) || 0, 0),
+                    1
+                );
+                const yRatio = Math.min(
+                    Math.max(Number(savedNote.yRatio) || 0, 0),
+                    1
+                );
+
+                createNoteIcon(
+                    xRatio * page.width,
+                    yRatio * page.height,
+                    savedNote.text,
+                    {
+                        id: Number.isInteger(savedNote.id)
+                            ? savedNote.id
+                            : undefined,
+                        skipSave: true
+                    }
+                );
+            });
+        }
+
+        isRestoringNotes = false;
+        repositionNotes();
     }
 
     function isADAPTInterfaceClick(event) {
@@ -675,8 +779,9 @@
                 true
             );
 
-            document.documentElement.style.cursor =
-                "copy";
+            document.documentElement.classList.add(
+                "adapt-note-placement-mode"
+            );
         } else {
             document.removeEventListener(
                 "click",
@@ -684,8 +789,11 @@
                 true
             );
 
-            document.documentElement.style.cursor =
-                "";
+            document.documentElement.classList.remove(
+                "adapt-note-placement-mode"
+            );
+
+            closeNote();
         }
     }
 
@@ -728,6 +836,9 @@
         });
 
         notes.clear();
+        document.documentElement.classList.remove(
+            "adapt-note-placement-mode"
+        );
 
         if (overlay) {
             overlay.remove();
@@ -775,27 +886,13 @@
         destroy,
 
         reposition: repositionNotes,
+        restore: restoreNotes,
+        save: saveNotes,
 
         isEnabled: () => isEnabled,
 
         getNotes: () => {
-            return Array
-                .from(notes.values())
-                .map(({
-                    id,
-                    x,
-                    y,
-                    xRatio,
-                    yRatio,
-                    text
-                }) => ({
-                    id,
-                    x,
-                    y,
-                    xRatio,
-                    yRatio,
-                    text
-                }));
+            return serializeNotes();
         }
     };
 })();

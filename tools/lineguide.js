@@ -1,114 +1,187 @@
-// Line Guide Tool
+// Draggable line guide with a persisted viewport-relative position.
 let isLineGuideActive = false;
-let lineGuideBlurEnabled = true; // Variable to determine if blur is applied
+let lineGuideBlurEnabled = true;
 let lineGuideElement = null;
 let blurLayerElement = null;
-let isDragging = false;
-let dragStartY = 0;
-let lineCurrentY = 0;
+let lineGuideYRatio = 0.5;
+let isDraggingLineGuide = false;
+let lineGuideDragStartY = 0;
+let lineGuideDragOriginY = 0;
 
-function toggleLineGuide(shouldEnable) {
-    isLineGuideActive = shouldEnable;
-    
-    if (shouldEnable) {
+function clampLineGuideRatio(value) {
+    const number = Number(value);
+
+    if (!Number.isFinite(number)) {
+        return 0.5;
+    }
+
+    return Math.min(Math.max(number, 0), 1);
+}
+
+function updateLineGuidePosition() {
+    if (!lineGuideElement) {
+        return;
+    }
+
+    const maximumY = Math.max(window.innerHeight - 2, 0);
+    const y = Math.min(
+        Math.max(lineGuideYRatio * window.innerHeight, 0),
+        maximumY
+    );
+
+    lineGuideElement.style.top = `${y}px`;
+
+    if (blurLayerElement) {
+        blurLayerElement.style.top = `${y + 2}px`;
+        blurLayerElement.style.height =
+            `calc(100vh - ${y + 2}px)`;
+    }
+}
+
+function createLineGuide() {
+    removeLineGuide();
+
+    if (lineGuideBlurEnabled) {
+        blurLayerElement = document.createElement("div");
+        blurLayerElement.id = "adapt-line-guide-blur";
+        blurLayerElement.dataset.adaptOwned = "true";
+        blurLayerElement.style.cssText = `
+            position: fixed;
+            left: 0;
+            width: 100%;
+            pointer-events: none;
+            z-index: 2147483597;
+            backdrop-filter: blur(3px);
+        `;
+        document.body.appendChild(blurLayerElement);
+    }
+
+    lineGuideElement = document.createElement("div");
+    lineGuideElement.id = "adapt-line-guide-line";
+    lineGuideElement.dataset.adaptOwned = "true";
+    lineGuideElement.setAttribute("role", "separator");
+    lineGuideElement.setAttribute(
+        "aria-label",
+        "Draggable reading line guide"
+    );
+    lineGuideElement.style.cssText = `
+        position: fixed;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: ${ADAPT.lineColor};
+        z-index: 2147483598;
+        cursor: grab;
+        box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+    `;
+
+    document.body.appendChild(lineGuideElement);
+    updateLineGuidePosition();
+
+    lineGuideElement.addEventListener(
+        "mousedown",
+        startLineGuideDrag
+    );
+    document.addEventListener(
+        "mousemove",
+        handleLineGuideDrag
+    );
+    document.addEventListener(
+        "mouseup",
+        stopLineGuideDrag
+    );
+}
+
+function removeLineGuide() {
+    if (lineGuideElement) {
+        lineGuideElement.removeEventListener(
+            "mousedown",
+            startLineGuideDrag
+        );
+        lineGuideElement.remove();
+        lineGuideElement = null;
+    }
+
+    document.removeEventListener(
+        "mousemove",
+        handleLineGuideDrag
+    );
+    document.removeEventListener(
+        "mouseup",
+        stopLineGuideDrag
+    );
+
+    blurLayerElement?.remove();
+    blurLayerElement = null;
+    isDraggingLineGuide = false;
+}
+
+function toggleLineGuide(shouldEnable, options = {}) {
+    isLineGuideActive = Boolean(shouldEnable);
+
+    if (options.yRatio !== undefined) {
+        lineGuideYRatio = clampLineGuideRatio(
+            options.yRatio
+        );
+    }
+
+    if (isLineGuideActive) {
         createLineGuide();
     } else {
         removeLineGuide();
     }
 }
 
-function createLineGuide() {
-    // Remove existing line guide if it exists
+function startLineGuideDrag(event) {
+    if (!lineGuideElement || event.button !== 0) {
+        return;
+    }
+
+    isDraggingLineGuide = true;
+    lineGuideDragStartY = event.clientY;
+    lineGuideDragOriginY =
+        lineGuideElement.getBoundingClientRect().top;
+    lineGuideElement.style.cursor = "grabbing";
+    event.preventDefault();
+}
+
+function handleLineGuideDrag(event) {
+    if (!isDraggingLineGuide || !lineGuideElement) {
+        return;
+    }
+
+    const maximumY = Math.max(window.innerHeight - 2, 0);
+    const nextY =
+        lineGuideDragOriginY +
+        (event.clientY - lineGuideDragStartY);
+    const clampedY = Math.min(
+        Math.max(nextY, 0),
+        maximumY
+    );
+
+    lineGuideYRatio =
+        window.innerHeight > 0
+            ? clampedY / window.innerHeight
+            : 0.5;
+
+    updateLineGuidePosition();
+}
+
+function stopLineGuideDrag() {
+    if (!isDraggingLineGuide) {
+        return;
+    }
+
+    isDraggingLineGuide = false;
+
     if (lineGuideElement) {
-        removeLineGuide();
+        lineGuideElement.style.cursor = "grab";
     }
-    
-    // Create the horizontal line guide
-    lineGuideElement = document.createElement('div');
-    lineGuideElement.id = 'adapt-line-guide-line';
-    lineGuideElement.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background-color: ${lineColor};
-        z-index: 999998;
-        cursor: grab;
-        box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
-    `;
-    
-    // Create blur layer if enabled
-    if (lineGuideBlurEnabled) {
-        blurLayerElement = document.createElement('div');
-        blurLayerElement.id = 'adapt-line-guide-blur';
-        blurLayerElement.style.cssText = `
-            position: fixed;
-            top: calc(50% + 2px);
-            left: 0;
-            width: 100%;
-            height: calc(100vh - 50% - 2px);
-            pointer-events: none;
-            z-index: 999997;
-            backdrop-filter: blur(3px);
-        `;
-        
-        document.body.appendChild(blurLayerElement);
-    }
-    
-    document.body.appendChild(lineGuideElement);
-    
-    // Add drag handlers
-    lineGuideElement.addEventListener('mousedown', startDrag);
-    document.addEventListener('mousemove', handleDrag);
-    document.addEventListener('mouseup', stopDrag);
+
+    globalThis.ADAPTApp?.updateGlobalSetting(
+        { lineGuideYRatio },
+        { apply: false }
+    );
 }
 
-function removeLineGuide() {
-    if (lineGuideElement) {
-        lineGuideElement.removeEventListener('mousedown', startDrag);
-        document.removeEventListener('mousemove', handleDrag);
-        document.removeEventListener('mouseup', stopDrag);
-        lineGuideElement.remove();
-        lineGuideElement = null;
-    }
-    
-    if (blurLayerElement) {
-        blurLayerElement.remove();
-        blurLayerElement = null;
-    }
-}
-
-function startDrag(e) {
-    isDragging = true;
-    dragStartY = e.clientY;
-    lineCurrentY = lineGuideElement.getBoundingClientRect().top;
-    lineGuideElement.style.cursor = 'grabbing';
-    e.preventDefault();
-}
-
-function handleDrag(e) {
-    if (!isDragging || !lineGuideElement) return;
-    
-    const deltaY = e.clientY - dragStartY;
-    const newY = lineCurrentY + deltaY;
-    
-    // Keep the line within viewport bounds
-    const maxY = window.innerHeight - 2;
-    const clampedY = Math.max(0, Math.min(newY, maxY));
-    
-    lineGuideElement.style.top = clampedY + 'px';
-    
-    // Update blur layer position and height
-    if (blurLayerElement) {
-        blurLayerElement.style.top = (clampedY + 2) + 'px';
-        blurLayerElement.style.height = `calc(100vh - ${clampedY + 2}px)`;
-    }
-}
-
-function stopDrag(e) {
-    isDragging = false;
-    if (lineGuideElement) {
-        lineGuideElement.style.cursor = 'grab';
-    }
-}
+window.addEventListener("resize", updateLineGuidePosition);

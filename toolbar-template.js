@@ -1,8 +1,8 @@
 // inner html for toolbar
 function getToolbarHTML(logoSrc) {
-    const { textColor, borderColor, bgColor, menuColor, selectedColor} = ADAPT;
+    const { textColor, menuColor } = ADAPT;
     return `
-        <img id="adapt-logo" src="${logoSrc}" alt="A.D.A.P.T" style="height: 32px; margin-left: 16px; margin-right: 16px;">
+        <img id="adapt-logo" src="${logoSrc}" alt="Toggle A.D.A.P.T. page changes" role="button" tabindex="0" style="height: 32px; margin-left: 16px; margin-right: 16px; cursor: pointer;">
 
         <div id="adapt-dropdown" style="position: relative; width: 120px; justify-content: space-between;">
             <button id="adapt-dropdown-btn" style="
@@ -40,7 +40,7 @@ function getToolbarHTML(logoSrc) {
             </div>
         </div>
 
-        <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
+        <div class="adapt-divider" aria-hidden="true"></div>
 
         <button id="adapt-bold">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
@@ -62,7 +62,7 @@ function getToolbarHTML(logoSrc) {
             </svg>
         </button>
 
-        <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
+        <div class="adapt-divider" aria-hidden="true"></div>
 
         <button id="adapt-decrease-size">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
@@ -70,7 +70,7 @@ function getToolbarHTML(logoSrc) {
             </svg>
         </button>
 
-        <input id="adapt-size-value" type="text" name="adapt-size" placeholder="100%" style="width: auto; max-width: 48px; height: 28px;">
+        <input class="adapt-value-input" id="adapt-size-value" type="text" name="adapt-size" aria-label="Text size percentage" placeholder="100%" style="width: auto; max-width: 48px; height: 28px;">
 
         <button id="adapt-increase-size">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
@@ -78,7 +78,7 @@ function getToolbarHTML(logoSrc) {
             </svg>
         </button>
 
-        <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
+        <div class="adapt-divider" aria-hidden="true"></div>
 
         <button id="adapt-decrease-leading">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
@@ -91,7 +91,7 @@ function getToolbarHTML(logoSrc) {
             </svg>
         </button>
 
-        <input id="adapt-leading-value" type="text" name="adapt-size" placeholder="100%" style="width: auto; max-width: 48px; height: 28px;">
+        <input class="adapt-value-input" id="adapt-leading-value" type="text" name="adapt-leading" aria-label="Line spacing percentage" placeholder="100%" style="width: auto; max-width: 48px; height: 28px;">
 
         <button id="adapt-increase-leading">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
@@ -104,7 +104,7 @@ function getToolbarHTML(logoSrc) {
             </svg>
         </button>
 
-        <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
+        <div class="adapt-divider" aria-hidden="true"></div>
 
         <button id="adapt-decrease-spacing">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
@@ -114,7 +114,7 @@ function getToolbarHTML(logoSrc) {
             </svg>
         </button>
 
-        <input id="adapt-spacing-value" type="text" name="adapt-size" placeholder="100%" style="width: auto; max-width: 48px; height: 28px;">
+        <input class="adapt-value-input" id="adapt-spacing-value" type="text" name="adapt-spacing" aria-label="Letter spacing percentage" placeholder="100%" style="width: auto; max-width: 48px; height: 28px;">
 
         <button id="adapt-increase-spacing">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
@@ -124,7 +124,7 @@ function getToolbarHTML(logoSrc) {
             </svg>
         </button>
 
-        <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
+        <div class="adapt-divider" aria-hidden="true"></div>
 
         <button id="adapt-highlight">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
@@ -157,7 +157,7 @@ function getToolbarHTML(logoSrc) {
             </svg>
         </button>
 
-        <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
+        <div class="adapt-divider" aria-hidden="true"></div>
 
         <button id="adapt-define">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
@@ -174,7 +174,7 @@ function getToolbarHTML(logoSrc) {
             </svg>
         </button>
 
-        <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
+        <div class="adapt-divider" aria-hidden="true"></div>
 
         <button id="adapt-settings">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="${textColor}" style="width: 18px; height: 18px;">
@@ -188,7 +188,7 @@ function getToolbarHTML(logoSrc) {
             </svg>
         </button>
 
-        <div style="width: 1px; height: 24px; background: ${borderColor};"></div>
+        <div class="adapt-divider" aria-hidden="true"></div>
 
         
         <button id="adapt-hide" style="margin-left: auto; margin-right: 12px;">

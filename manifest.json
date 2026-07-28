@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "A.D.A.P.T.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Transform your web pages to be more accessible",
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["storage"],
   "web_accessible_resources": [
     {
       "resources": ["images/*", "fonts/*.woff2"],
@@ -17,6 +17,7 @@
         "theme.js",
         "toolbar-template.js",
         "content.js",
+        "state.js",
         "processing/font.js",
         "processing/size.js",
         "processing/leading.js",
@@ -28,7 +29,8 @@
         "tools/highlighter.js",
         "tools/note.js",
         "toolbar.js"
-      ]
+      ],
+      "run_at": "document_idle"
     }
   ],
   "icons": {
