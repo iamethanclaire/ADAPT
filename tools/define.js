@@ -528,7 +528,7 @@
             .header {
                 position: sticky;
                 top: 0;
-                z-index: 1;
+                z-index: 0;
                 display: flex;
                 align-items: flex-start;
                 gap: 10px;
@@ -643,23 +643,6 @@
                 color: #526a78;
                 font-size: 12px;
                 line-height: 1.45;
-            }
-
-            .listen {
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                margin-top: 8px;
-                padding: 6px 9px;
-                color: #0f649c;
-                background: #e6f4fc;
-                border-radius: 7px;
-                font-size: 12px;
-                font-weight: 700;
-            }
-
-            .listen:hover {
-                background: #d6ecf8;
             }
 
             .source {
@@ -830,21 +813,6 @@
         }
 
         const fragment = document.createDocumentFragment();
-
-        if (audioUrl) {
-            const listenButton = createElement("button", {
-                className: "listen",
-                text: "🔊 Listen"
-            });
-            listenButton.type = "button";
-            listenButton.addEventListener("click", () => {
-                playPronunciation(
-                    audioUrl,
-                    listenButton
-                );
-            });
-            fragment.appendChild(listenButton);
-        }
 
         const meanings = entries
             .flatMap((item) => item.meanings || [])
