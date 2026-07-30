@@ -1,18 +1,30 @@
 {
   "manifest_version": 3,
   "name": "A.D.A.P.T.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Transform your web pages to be more accessible",
-  "permissions": ["storage"],
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://api.dictionaryapi.dev/*"
+  ],
   "web_accessible_resources": [
     {
-      "resources": ["images/*", "fonts/*.woff2"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "images/*",
+        "fonts/*.woff2"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "<all_urls>"
+      ],
       "js": [
         "theme.js",
         "toolbar-template.js",
@@ -28,6 +40,7 @@
         "tools/lineguide.js",
         "tools/highlighter.js",
         "tools/note.js",
+        "tools/define.js",
         "tools/speak.js",
         "toolbar.js"
       ],
