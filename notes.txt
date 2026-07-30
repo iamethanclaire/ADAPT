@@ -11,3 +11,140 @@ View all notes: Opens a note that pulls all note content and displays it all at 
 Change Colors of line guide, highlighter, note
 Multi-Color Highlighter, Multi-Color notes (3 of each)
 Upload Custom Fonts
+
+
+
+Consider the following scripts. I would like to create a settings.js script that does the following:
+
+
+Consider the following scripts. I would like to create a settings.js script that does the following:
+
+
+
+size + size.js: make it to where users can change these variables: const sizeStep = 5;
+
+const maxSize = 150;
+
+const minSize = 80;
+
+
+
+The smallest possible sizeStep should be 1 and the largest should be 50.
+
+The largest possible max size should be 200, the smallest possible max size should be 100
+
+The smallest possible min size should be 50, the largest possible min size should be 100
+
+
+
+When users increase the max size above 150 or decrease the min size below 80, it should have a little warning that says "text displayed at this size may impact the structure of the webpage and may impact readability".
+
+
+
+spacing + spacing.js:
+
+const spacingStep = 25;
+
+const maxSpacing = 200;
+
+const minSpacing = 50;
+
+
+
+The smallest possible spacingStep should be 1 and The largest possible should be 50.
+
+The smallest possible maxSpacing should be 100 and the largest possible maxSpacing should be 300
+
+the smallest possible minSpacing should be 25 and the largest possible minSpacing should be 100
+
+
+
+It should give similar warning labels when these the maxSpacing and minSpacing are altered
+
+
+
+leading + leading.js:
+
+const leadingStep = 10;
+
+const maxLeading = 200;
+
+const minLeading = 80;
+
+
+
+The smallest possible leadingStep should be 1 and The largest possible should be 50.
+
+
+
+The smallest possible maxLeading should be 100 and the largest possible maxSpacing should be 300
+
+
+
+the smallest possible maxSpacing should be 50 and the largest possible minSpacing should be 100
+
+
+
+It should give similar warning labels when these the maxLeading and minLeading are altered
+
+
+
+
+
+lineguide + lineguide.js
+
+
+
+blur below line guide should be a toggle. The thickness of the line guide should also be a variable that can be increased. The minimum line guide thickness should be 1 px and the max should be 5 pixels
+
+
+
+all of these settings should be free and should not require any extra subscription
+
+
+
+
+
+Speak: The default voice should be able to be changed it settings. There should be a dropdown for this.
+
+
+
+PAID SETTINGS: These should only show if the website is paid for.
+
+
+
+Upload Font button: the final setting in the dropdown for the fonts dropdown should be uploadFont. This allows a user to select a .ttf file where they can upload any font that they want. If the extension isn't paid for, it should have a lock next to it.
+
+
+
+Extra fonts: all of the fonts that are in the image uploaded should be in the font dropdown if the paid version of the extension is purchased. Upload font should be the top dropdown if needed.
+
+
+
+extra highlighter colors: The highlighter should have a grid of colors of the same colors that were provided to you. They should be in rainbow order. The yellow color should be default and the only color that is allowed without paying is the default yellow color. everything else should have the locks on it. if the lock is pressed, the popup for buying it should be shown.
+
+
+
+extra note colors: The notes should have a line of colors: yellow, orange, pink, green, blue. The yellow color should be the default and the only one that is allowed without paying. Everything else should have locks on it. if the lock is pressed, the popup for buying it should be shown.
+
+
+
+change line guide color: the line guide color should be able to be changed to any color on a color selector. This should be able to be done in the settings page. 
+
+
+
+
+
+When the  color is changed for a highlighter or for a note, it should not alter the colors of the highlights or notes that already exist. Instead, the highlighter/note and its respective color should be saved as a cookie. 
+
+
+
+
+
+
+
+Toolbar color: The toolbar color should be able to be changed from the default white and default black to a custom Red, Yellow, Orange, Green, Blue, Purple, Pink, Light Coffee Brown, 
+
+
+
+I would additionally like a sticker button. When the purchase has not been made, the sticker button should have a lock over it. The sticker button, when paid for, should display 5 stickers horizontally in a div that is the same color as the toolbar. It should be in a div that looks like a dropdown. When a when a sticker is pressed, it should highlight with the selected button color, and when the cursor is pressed on the screen, it should place the selected sticker on the screen. In settings, the types of stickers should be displayed under the "stickers" section. the name of the type of stickers, for example "text annotation pack" should be right above the 5 stickers. When selected, the sticker pack that is to be used will show up when the sticker button is pressed in the toolbar. Additionally, do not implement the paid section where it actually requires a payment. Instead, the paid section should just have you press "purchase" and then it unlocks everything. The payment section should be a popup that has a list of the things that get added. Then at the bottom it has a button at the left that says "cancel", and a button at the right that says "purchase". it should also have an x in the top just like the note button. Implement all of these things and rewrite the scripts in their entirety. Additionally, all of these extra colors should be stored in theme.js. That way, if I want to change any colors, I can change it in the theme. This goes for every single color. Additionally, do not edit ANY other logic for the web browser extension that has already been created. The only thing that should be changed there is variable usage.
