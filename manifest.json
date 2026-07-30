@@ -9,6 +9,9 @@
   "host_permissions": [
     "https://api.dictionaryapi.dev/*"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "web_accessible_resources": [
     {
       "resources": [
@@ -30,6 +33,7 @@
         "toolbar-template.js",
         "content.js",
         "state.js",
+        "background.js",
         "processing/font.js",
         "processing/size.js",
         "processing/leading.js",

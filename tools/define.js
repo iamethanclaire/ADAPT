@@ -6,8 +6,8 @@
     const STYLE_ID = "adapt-define-style";
     const OVERLAY_ID = "adapt-define-highlight-overlay";
     const POPUP_HOST_ID = "adapt-define-popup-host";
-    const DICTIONARY_ENDPOINT =
-        "https://api.dictionaryapi.dev/api/v2/entries/en/";
+    const DICTIONARY_LOOKUP_MESSAGE =
+    "adapt-dictionary-lookup";
     const EXCLUDED_CONTENT_SELECTOR = [
         "script",
         "style",
@@ -40,7 +40,6 @@
     let currentWord = "";
     let popupHost = null;
     let popupShadow = null;
-    let activeRequest = null;
     let requestNumber = 0;
     let activeAudio = null;
 
@@ -976,9 +975,6 @@
 }
 
     function closePopup(options = {}) {
-        activeRequest?.abort();
-        activeRequest = null;
-
         activeAudio?.pause();
         activeAudio = null;
 
@@ -992,49 +988,36 @@
     }
 
     async function lookupWord(word) {
-        const normalizedWord = word.trim().toLowerCase();
+        const normalizedWord =
+            word.trim().toLowerCase();
 
         if (!normalizedWord) {
             return;
         }
 
         ensurePopup();
+
         setPopupStatus(
             word,
             `Looking up “${word}”…`
         );
 
-        activeRequest?.abort();
-        activeRequest = null;
         const currentRequest = ++requestNumber;
-        const cached = definitionCache.get(normalizedWord);
+
+        const cached =
+            definitionCache.get(normalizedWord);
 
         if (cached) {
             renderDefinition(word, cached);
             return;
         }
 
-        activeRequest = new AbortController();
-
         try {
-            const response = await fetch(
-                `${DICTIONARY_ENDPOINT}${encodeURIComponent(
-                    normalizedWord
-                )}`,
-                {
-                    signal: activeRequest.signal
-                }
-            );
-
-            if (!response.ok) {
-                if (response.status === 404) {
-                    throw new Error("not-found");
-                }
-
-                throw new Error("request-failed");
-            }
-
-            const entries = await response.json();
+            const result =
+                await chrome.runtime.sendMessage({
+                    type: DICTIONARY_LOOKUP_MESSAGE,
+                    word: normalizedWord
+                });
 
             if (
                 currentRequest !== requestNumber ||
@@ -1043,20 +1026,34 @@
                 return;
             }
 
-            if (!Array.isArray(entries) || !entries.length) {
-                throw new Error("not-found");
+            if (!result?.ok) {
+                throw new Error(
+                    result?.error ||
+                        "request-failed"
+                );
+            }
+
+            const entries = result.entries;
+
+            if (
+                !Array.isArray(entries) ||
+                !entries.length
+            ) {
+                throw new Error(
+                    "invalid-response"
+                );
             }
 
             definitionCache.set(
                 normalizedWord,
                 entries
             );
-            renderDefinition(word, entries);
-        } catch (error) {
-            if (error.name === "AbortError") {
-                return;
-            }
 
+            renderDefinition(
+                word,
+                entries
+            );
+        } catch (error) {
             if (
                 currentRequest !== requestNumber ||
                 !popupHost?.isConnected
@@ -1064,22 +1061,51 @@
                 return;
             }
 
-            if (error.message === "not-found") {
-                setPopupStatus(
-                    word,
-                    `No definition was found for “${word}.”`,
-                    true
-                );
-            } else {
-                setPopupStatus(
-                    word,
-                    "The dictionary could not be reached. Check your connection and try again.",
-                    true
-                );
-            }
-        } finally {
-            if (currentRequest === requestNumber) {
-                activeRequest = null;
+            switch (error.message) {
+                case "not-found":
+                    setPopupStatus(
+                        word,
+                        `No definition was found for “${word}.”`,
+                        true
+                    );
+                    break;
+
+                case "rate-limited":
+                    setPopupStatus(
+                        word,
+                        "The dictionary is receiving too many requests. Please wait a moment and try again.",
+                        true
+                    );
+                    break;
+
+                case "server-error":
+                    setPopupStatus(
+                        word,
+                        "The dictionary service is temporarily unavailable. Please try again shortly.",
+                        true
+                    );
+                    break;
+
+                case "invalid-response":
+                    setPopupStatus(
+                        word,
+                        "The dictionary returned an invalid response. Please try again.",
+                        true
+                    );
+                    break;
+
+                default:
+                    console.error(
+                        "[ADAPT] Dictionary lookup failed:",
+                        error
+                    );
+
+                    setPopupStatus(
+                        word,
+                        "The dictionary could not be reached. Check your connection and try again.",
+                        true
+                    );
+                    break;
             }
         }
     }
