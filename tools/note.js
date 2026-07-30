@@ -89,7 +89,7 @@
                     0 3px 4px rgba(0, 0, 0, 0.28)
                 );
 
-                z-index: 2147483000;
+                z-index: 99998;
             }
 
             .adapt-note-icon:hover {
@@ -147,7 +147,7 @@
 
                 cursor: default !important;
 
-                z-index: 2147483646;
+                z-index: 99998;
             }
             
             .adapt-note-dialog,
