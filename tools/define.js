@@ -396,7 +396,7 @@
             Object.assign(overlay.style, {
                 position: "fixed",
                 inset: "0",
-                zIndex: "2147483645",
+                zIndex: "999999",
                 pointerEvents: "none"
             });
             document.documentElement.appendChild(overlay);
@@ -478,12 +478,16 @@
 
         popupHost = document.createElement("div");
         popupHost.id = POPUP_HOST_ID;
+
         Object.assign(popupHost.style, {
             position: "fixed",
             left: "12px",
             top: "12px",
             width: "min(340px, calc(100vw - 24px))",
-            zIndex: "2147483647",
+
+            // Keeps the definition behind the toolbar while scrolling.
+            zIndex: "999999",
+
             visibility: "hidden"
         });
 
@@ -908,6 +912,16 @@
     }
 
     function positionPopup() {
+    if (
+        !popupHost?.isConnected ||
+        !currentRange
+    ) {
+        return;
+    }
+
+    popupHost.style.visibility = "hidden";
+
+    requestAnimationFrame(() => {
         if (
             !popupHost?.isConnected ||
             !currentRange
@@ -915,59 +929,51 @@
             return;
         }
 
-        popupHost.style.visibility = "hidden";
+        const anchor =
+            currentRange.getBoundingClientRect();
 
-        requestAnimationFrame(() => {
-            if (
-                !popupHost?.isConnected ||
-                !currentRange
-            ) {
-                return;
-            }
+        const popupRect =
+            popupHost.getBoundingClientRect();
 
-            const anchor =
-                currentRange.getBoundingClientRect();
-            const popupRect =
-                popupHost.getBoundingClientRect();
-            const margin = 12;
-            const gap = 8;
+        const margin = 12;
+        const gap = 8;
 
-            let left = anchor.left;
-            let top = anchor.bottom + gap;
+        let left = anchor.left;
+        let top = anchor.bottom + gap;
 
-            if (
-                left + popupRect.width >
-                globalThis.innerWidth - margin
-            ) {
-                left =
-                    globalThis.innerWidth -
-                    popupRect.width -
-                    margin;
-            }
+        if (
+            left + popupRect.width >
+            globalThis.innerWidth - margin
+        ) {
+            left =
+                globalThis.innerWidth -
+                popupRect.width -
+                margin;
+        }
 
-            if (left < margin) {
-                left = margin;
-            }
+        if (left < margin) {
+            left = margin;
+        }
 
-            if (
-                top + popupRect.height >
-                globalThis.innerHeight - margin
-            ) {
-                top =
-                    anchor.top -
-                    popupRect.height -
-                    gap;
-            }
+        if (
+            top + popupRect.height >
+            globalThis.innerHeight - margin
+        ) {
+            top =
+                anchor.top -
+                popupRect.height -
+                gap;
+        }
 
-            if (top < margin) {
-                top = margin;
-            }
+        popupHost.style.left =
+            `${Math.round(left)}px`;
 
-            popupHost.style.left = `${Math.round(left)}px`;
-            popupHost.style.top = `${Math.round(top)}px`;
-            popupHost.style.visibility = "visible";
-        });
-    }
+        popupHost.style.top =
+            `${Math.round(top)}px`;
+
+        popupHost.style.visibility = "visible";
+    });
+}
 
     function closePopup(options = {}) {
         activeRequest?.abort();
