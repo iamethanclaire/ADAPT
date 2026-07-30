@@ -573,7 +573,7 @@
                 place-items: center;
                 padding: 0;
                 color: #425767;
-                background: #edf3f7;
+                background: #ffffff;
                 border-radius: 7px;
                 font-size: 20px;
                 line-height: 1;
@@ -581,7 +581,7 @@
 
             .close:hover {
                 color: #17242e;
-                background: #dfeaf0;
+                background: #ffffff;
             }
 
             .content {
