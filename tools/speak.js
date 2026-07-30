@@ -6,6 +6,19 @@
     const STYLE_ID = "adapt-speak-style";
     const OVERLAY_ID = "adapt-speak-overlay";
 
+    const PREFERRED_VOICE_NAMES = Object.freeze([
+        "Alex",
+        "Ava",
+        "Google US English",
+        "Microsoft Aria Online",
+        "Microsoft Jenny Online",
+        "Samantha"
+    ]);
+
+    const SPEECH_RATE = 0.95;
+    const SPEECH_PITCH = 1;
+    const SPEECH_VOLUME = 1;
+
     const SENTENCE_CONTAINER_SELECTOR = [
         "p",
         "li",
@@ -74,6 +87,96 @@
     let currentRange = null;
     let currentText = "";
     let activeUtterance = null;
+    let availableVoices = [];
+
+    function isSpeechSupported() {
+        return (
+            "speechSynthesis" in globalThis &&
+            typeof globalThis
+                .SpeechSynthesisUtterance ===
+                "function"
+        );
+    }
+
+    function loadAvailableVoices() {
+        if (!isSpeechSupported()) {
+            availableVoices = [];
+            return;
+        }
+
+        availableVoices =
+            globalThis.speechSynthesis.getVoices();
+    }
+
+    function getPreferredVoice(language) {
+        if (!availableVoices.length) {
+            loadAvailableVoices();
+        }
+
+        if (!availableVoices.length) {
+            return null;
+        }
+
+        const normalizedLanguage = String(
+            language || "en-US"
+        ).toLowerCase();
+
+        const languageRoot =
+            normalizedLanguage.split("-")[0];
+
+        const matchingVoices =
+            availableVoices.filter((voice) => {
+                const voiceLanguage =
+                    voice.lang.toLowerCase();
+
+                return (
+                    voiceLanguage ===
+                        normalizedLanguage ||
+                    voiceLanguage.split("-")[0] ===
+                        languageRoot
+                );
+            });
+
+        const candidates =
+            matchingVoices.length
+                ? matchingVoices
+                : availableVoices;
+
+        for (
+            const preferredName of
+            PREFERRED_VOICE_NAMES
+        ) {
+            const voice = candidates.find(
+                (candidate) =>
+                    candidate.name
+                        .toLowerCase()
+                        .includes(
+                            preferredName.toLowerCase()
+                        )
+            );
+
+            if (voice) {
+                return voice;
+            }
+        }
+
+        /*
+        * If none of the preferred voices are installed,
+        * select a non-default voice in the page's language.
+        */
+        return (
+            candidates.find(
+                (voice) =>
+                    voice.localService &&
+                    !voice.default
+            ) ||
+            candidates.find(
+                (voice) => !voice.default
+            ) ||
+            candidates[0] ||
+            null
+        );
+    }
 
     function installStyles() {
         if (document.getElementById(STYLE_ID)) {
@@ -932,26 +1035,40 @@
     }
 
     function speakText(text) {
-        if (
-            !("speechSynthesis" in globalThis) ||
-            typeof globalThis.SpeechSynthesisUtterance !==
-                "function"
-        ) {
+        if (!isSpeechSupported()) {
             console.warn(
                 "[ADAPT] Speech synthesis is not supported in this browser."
             );
+
             return;
         }
 
-        speechSynthesis.cancel();
+        globalThis.speechSynthesis.cancel();
 
         const utterance =
             new SpeechSynthesisUtterance(text);
 
-        utterance.lang =
+        const language =
             document.documentElement.lang ||
             navigator.language ||
             "en-US";
+
+        const preferredVoice =
+            getPreferredVoice(language);
+
+        if (preferredVoice) {
+            utterance.voice =
+                preferredVoice;
+
+            utterance.lang =
+                preferredVoice.lang;
+        } else {
+            utterance.lang = language;
+        }
+
+        utterance.rate = SPEECH_RATE;
+        utterance.pitch = SPEECH_PITCH;
+        utterance.volume = SPEECH_VOLUME;
 
         utterance.onend = () => {
             if (
@@ -961,17 +1078,29 @@
             }
         };
 
-        utterance.onerror = () => {
+        utterance.onerror = (event) => {
             if (
                 activeUtterance === utterance
             ) {
                 activeUtterance = null;
             }
+
+            if (
+                event.error !== "canceled" &&
+                event.error !== "interrupted"
+            ) {
+                console.warn(
+                    "[ADAPT] Speech synthesis failed:",
+                    event.error
+                );
+            }
         };
 
         activeUtterance = utterance;
 
-        speechSynthesis.speak(utterance);
+        globalThis.speechSynthesis.speak(
+            utterance
+        );
     }
 
     function handleClick(event) {
@@ -1198,11 +1327,20 @@
 
         clearHighlight();
 
-        if ("speechSynthesis" in globalThis) {
-            speechSynthesis.cancel();
+        if (isSpeechSupported()) {
+            globalThis.speechSynthesis.cancel();
         }
 
         activeUtterance = null;
+    }
+
+    if (isSpeechSupported()) {
+        loadAvailableVoices();
+
+        globalThis.speechSynthesis.addEventListener(
+            "voiceschanged",
+            loadAvailableVoices
+        );
     }
 
     globalThis.ADAPTSpeak = Object.freeze({
@@ -1217,12 +1355,7 @@
         },
 
         isSupported() {
-            return (
-                "speechSynthesis" in globalThis &&
-                typeof globalThis
-                    .SpeechSynthesisUtterance ===
-                    "function"
-            );
+            return isSpeechSupported();
         }
     });
 })();
