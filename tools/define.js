@@ -427,7 +427,8 @@
                 width: `${rect.width}px`,
                 height: `${rect.height}px`,
                 borderRadius: "2px",
-                background: "rgba(135, 206, 250, 0.58)"
+                background:
+                    ADAPT.colors.speakHighlight
             });
             overlay.appendChild(highlight);
         }
@@ -516,13 +517,18 @@
                 width: 100%;
                 max-height: min(420px, calc(100vh - 24px));
                 overflow: auto;
-                color: #18212a;
-                background: #ffffff;
-                border: 1px solid #b8c7d3;
+                color: ${ADAPT.colors.defineText};
+                background:
+                    ${ADAPT.colors.defineBackground};
+                border:
+                    1px solid
+                    ${ADAPT.colors.defineBorder};
                 border-radius: 12px;
                 box-shadow:
-                    0 12px 34px rgba(17, 35, 50, 0.22),
-                    0 2px 8px rgba(17, 35, 50, 0.12);
+                    0 12px 34px
+                    ${ADAPT.colors.defineShadowStrong},
+                    0 2px 8px
+                    ${ADAPT.colors.defineShadowSoft};
                 cursor: default;
                 -webkit-user-select: text;
                 user-select: text;
@@ -536,8 +542,11 @@
                 align-items: flex-start;
                 gap: 10px;
                 padding: 14px 14px 12px;
-                background: #ffffff;
-                border-bottom: 1px solid #e4ebf0;
+                background:
+                    ${ADAPT.colors.defineBackground};
+                border-bottom:
+                    1px solid
+                    ${ADAPT.colors.defineHeaderBorder};
             }
 
             .heading {
@@ -547,7 +556,8 @@
 
             .word {
                 margin: 0;
-                color: #13212c;
+                color:
+                    ${ADAPT.colors.defineHeading};
                 font-size: 21px;
                 font-weight: 700;
                 line-height: 1.2;
@@ -557,7 +567,8 @@
             .phonetic {
                 display: block;
                 margin-top: 3px;
-                color: #587080;
+                color:
+                    ${ADAPT.colors.defineSecondary};
                 font-size: 13px;
                 line-height: 1.35;
             }
@@ -575,16 +586,20 @@
                 height: 28px;
                 place-items: center;
                 padding: 0;
-                color: #425767;
-                background: #ffffff;
+                color:
+                    ${ADAPT.colors.defineClose};
+                background:
+                    ${ADAPT.colors.defineBackground};
                 border-radius: 7px;
                 font-size: 20px;
                 line-height: 1;
             }
 
             .close:hover {
-                color: #17242e;
-                background: #ffffff;
+                color:
+                    ${ADAPT.colors.defineCloseHover};
+                background:
+                    ${ADAPT.colors.defineBackground};
             }
 
             .content {
@@ -593,24 +608,29 @@
 
             .status {
                 margin: 0;
-                color: #4d6372;
+                color:
+                    ${ADAPT.colors.defineStatus};
                 font-size: 14px;
                 line-height: 1.5;
             }
 
             .error {
-                color: #9c2f2f;
+                color:
+                    ${ADAPT.colors.defineError};
             }
 
             .meaning + .meaning {
                 margin-top: 17px;
                 padding-top: 15px;
-                border-top: 1px solid #e7edf1;
+                border-top:
+                    1px solid
+                    ${ADAPT.colors.defineMeaningBorder};
             }
 
             .part-of-speech {
                 margin: 0 0 8px;
-                color: #176eaa;
+                color:
+                    ${ADAPT.colors.defineAccent};
                 font-size: 13px;
                 font-style: italic;
                 font-weight: 700;
@@ -624,7 +644,8 @@
 
             .definition {
                 padding-left: 2px;
-                color: #22313b;
+                color:
+                    ${ADAPT.colors.defineBody};
                 font-size: 14px;
                 line-height: 1.48;
             }
@@ -636,21 +657,24 @@
             .example {
                 display: block;
                 margin-top: 5px;
-                color: #657985;
+                color:
+                    ${ADAPT.colors.defineExample};
                 font-size: 13px;
                 font-style: italic;
             }
 
             .synonyms {
                 margin: 10px 0 0;
-                color: #526a78;
+                color:
+                    ${ADAPT.colors.defineSynonyms};
                 font-size: 12px;
                 line-height: 1.45;
             }
 
             .source {
                 margin: 16px 0 0;
-                color: #82939e;
+                color:
+                    ${ADAPT.colors.defineSource};
                 font-size: 10px;
                 text-align: right;
             }

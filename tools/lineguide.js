@@ -1,6 +1,8 @@
 // Draggable line guide with a persisted viewport-relative position.
 let isLineGuideActive = false;
 let lineGuideBlurEnabled = true;
+let lineGuideThickness = 2;
+let lineGuideColor = ADAPT.lineColor;
 let lineGuideElement = null;
 let blurLayerElement = null;
 let lineGuideYRatio = 0.5;
@@ -23,7 +25,10 @@ function updateLineGuidePosition() {
         return;
     }
 
-    const maximumY = Math.max(window.innerHeight - 2, 0);
+    const maximumY = Math.max(
+        window.innerHeight - lineGuideThickness,
+        0
+    );
     const y = Math.min(
         Math.max(lineGuideYRatio * window.innerHeight, 0),
         maximumY
@@ -32,9 +37,12 @@ function updateLineGuidePosition() {
     lineGuideElement.style.top = `${y}px`;
 
     if (blurLayerElement) {
-        blurLayerElement.style.top = `${y + 2}px`;
+        blurLayerElement.style.top =
+            `${y + lineGuideThickness}px`;
         blurLayerElement.style.height =
-            `calc(100vh - ${y + 2}px)`;
+            `calc(100vh - ${
+                y + lineGuideThickness
+            }px)`;
     }
 }
 
@@ -68,11 +76,12 @@ function createLineGuide() {
         position: fixed;
         left: 0;
         width: 100%;
-        height: 2px;
-        background-color: ${ADAPT.lineColor};
+        height: ${lineGuideThickness}px;
+        background-color: ${lineGuideColor};
         z-index: 2147483598;
         cursor: grab;
-        box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+        box-shadow:
+            0 0 4px ${ADAPT.colors.shadowLineGuide};
     `;
 
     document.body.appendChild(lineGuideElement);
@@ -125,6 +134,25 @@ function toggleLineGuide(shouldEnable, options = {}) {
         );
     }
 
+    if (options.blurEnabled !== undefined) {
+        lineGuideBlurEnabled =
+            Boolean(options.blurEnabled);
+    }
+
+    if (options.thickness !== undefined) {
+        lineGuideThickness = Math.min(
+            Math.max(Number(options.thickness) || 2, 1),
+            5
+        );
+    }
+
+    if (
+        typeof options.color === "string" &&
+        /^#[0-9a-f]{6}$/i.test(options.color)
+    ) {
+        lineGuideColor = options.color;
+    }
+
     if (isLineGuideActive) {
         createLineGuide();
     } else {
@@ -150,7 +178,10 @@ function handleLineGuideDrag(event) {
         return;
     }
 
-    const maximumY = Math.max(window.innerHeight - 2, 0);
+    const maximumY = Math.max(
+        window.innerHeight - lineGuideThickness,
+        0
+    );
     const nextY =
         lineGuideDragOriginY +
         (event.clientY - lineGuideDragStartY);

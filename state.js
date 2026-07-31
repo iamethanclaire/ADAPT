@@ -21,22 +21,45 @@
     const defaultGlobalState = Object.freeze({
         isActive: true,
         toolbarHidden: false,
+        premiumUnlocked: false,
         font: "page-default",
         size: 100,
+        sizeStep: 5,
+        maxSize: 150,
+        minSize: 80,
         leading: 100,
+        leadingStep: 10,
+        maxLeading: 200,
+        minLeading: 80,
         spacing: 100,
+        spacingStep: 25,
+        maxSpacing: 200,
+        minSpacing: 50,
         removeBold: false,
         removeItalics: false,
         removeUnderline: false,
         highlightEnabled: false,
+        highlighterColor:
+            globalThis.ADAPT.colors.yellowDefault,
         lineGuideEnabled: false,
         lineGuideYRatio: 0.5,
-        noteEnabled: false
+        lineGuideBlurEnabled: true,
+        lineGuideThickness: 2,
+        lineGuideColor:
+            globalThis.ADAPT.lineColor,
+        noteEnabled: false,
+        noteColor: "yellow",
+        speechVoiceURI: "default",
+        toolbarColor: "system",
+        stickerEnabled: false,
+        selectedStickerPack: "text-annotation",
+        selectedStickerId: "question"
     });
 
     const defaultPageState = Object.freeze({
         highlights: [],
-        notes: []
+        notes: [],
+        stickers: []
     });
 
     let globalState = { ...defaultGlobalState };
@@ -61,9 +84,138 @@
     }
 
     function normalizeGlobalState(candidate = {}) {
-        const availableFonts = Array.isArray(globalThis.ADAPT?.fonts)
-            ? globalThis.ADAPT.fonts.map((font) => font.value)
-            : ["page-default"];
+        const adaptTheme = globalThis.ADAPT;
+        const premiumUnlocked =
+            Boolean(candidate.premiumUnlocked);
+
+        const sizeStep = clampNumber(
+            candidate.sizeStep,
+            1,
+            50,
+            defaultGlobalState.sizeStep
+        );
+        const maxSize = clampNumber(
+            candidate.maxSize,
+            100,
+            200,
+            defaultGlobalState.maxSize
+        );
+        const minSize = clampNumber(
+            candidate.minSize,
+            50,
+            100,
+            defaultGlobalState.minSize
+        );
+
+        const leadingStep = clampNumber(
+            candidate.leadingStep,
+            1,
+            50,
+            defaultGlobalState.leadingStep
+        );
+        const maxLeading = clampNumber(
+            candidate.maxLeading,
+            100,
+            300,
+            defaultGlobalState.maxLeading
+        );
+        const minLeading = clampNumber(
+            candidate.minLeading,
+            50,
+            100,
+            defaultGlobalState.minLeading
+        );
+
+        const spacingStep = clampNumber(
+            candidate.spacingStep,
+            1,
+            50,
+            defaultGlobalState.spacingStep
+        );
+        const maxSpacing = clampNumber(
+            candidate.maxSpacing,
+            100,
+            300,
+            defaultGlobalState.maxSpacing
+        );
+        const minSpacing = clampNumber(
+            candidate.minSpacing,
+            25,
+            100,
+            defaultGlobalState.minSpacing
+        );
+
+        const requestedFont =
+            typeof adaptTheme?.getFont === "function"
+                ? adaptTheme.getFont(candidate.font)
+                : null;
+        const safeFont =
+            requestedFont &&
+            (!requestedFont.premium || premiumUnlocked)
+                ? requestedFont.value
+                : defaultGlobalState.font;
+
+        const requestedHighlighterColor =
+            typeof adaptTheme?.getHighlighterColor ===
+            "function"
+                ? adaptTheme.getHighlighterColor(
+                      candidate.highlighterColor
+                  )
+                : null;
+        const safeHighlighterColor =
+            requestedHighlighterColor &&
+            (!requestedHighlighterColor.premium ||
+                premiumUnlocked)
+                ? requestedHighlighterColor.value
+                : defaultGlobalState.highlighterColor;
+
+        const requestedNoteColor =
+            typeof adaptTheme?.getNoteColor === "function"
+                ? adaptTheme.getNoteColor(candidate.noteColor)
+                : null;
+        const safeNoteColor =
+            requestedNoteColor &&
+            (!requestedNoteColor.premium ||
+                premiumUnlocked)
+                ? requestedNoteColor.id
+                : defaultGlobalState.noteColor;
+
+        const toolbarThemes =
+            adaptTheme?.toolbarThemes || {};
+        const safeToolbarColor =
+            premiumUnlocked &&
+            Object.prototype.hasOwnProperty.call(
+                toolbarThemes,
+                candidate.toolbarColor
+            )
+                ? candidate.toolbarColor
+                : defaultGlobalState.toolbarColor;
+
+        const requestedStickerPack =
+            typeof adaptTheme?.getStickerPack === "function"
+                ? adaptTheme.getStickerPack(
+                      candidate.selectedStickerPack
+                  )
+                : null;
+        const safeStickerPack =
+            requestedStickerPack?.id ||
+            defaultGlobalState.selectedStickerPack;
+        const requestedSticker =
+            typeof adaptTheme?.getSticker === "function"
+                ? adaptTheme.getSticker(
+                      safeStickerPack,
+                      candidate.selectedStickerId
+                  )
+                : null;
+        const safeStickerId =
+            requestedSticker?.id ||
+            defaultGlobalState.selectedStickerId;
+
+        const requestedLineGuideColor =
+            typeof candidate.lineGuideColor === "string" &&
+            /^#[0-9a-f]{6}$/i.test(candidate.lineGuideColor)
+                ? candidate.lineGuideColor
+                : defaultGlobalState.lineGuideColor;
 
         const normalized = {
             isActive:
@@ -74,16 +226,40 @@
                 typeof candidate.toolbarHidden === "boolean"
                     ? candidate.toolbarHidden
                     : defaultGlobalState.toolbarHidden,
-            font: availableFonts.includes(candidate.font)
-                ? candidate.font
-                : defaultGlobalState.font,
-            size: clampNumber(candidate.size, 80, 150, 100),
-            leading: clampNumber(candidate.leading, 80, 200, 100),
-            spacing: clampNumber(candidate.spacing, 50, 200, 100),
+            premiumUnlocked,
+            font: safeFont,
+            size: clampNumber(
+                candidate.size,
+                minSize,
+                maxSize,
+                defaultGlobalState.size
+            ),
+            sizeStep,
+            maxSize,
+            minSize,
+            leading: clampNumber(
+                candidate.leading,
+                minLeading,
+                maxLeading,
+                defaultGlobalState.leading
+            ),
+            leadingStep,
+            maxLeading,
+            minLeading,
+            spacing: clampNumber(
+                candidate.spacing,
+                minSpacing,
+                maxSpacing,
+                defaultGlobalState.spacing
+            ),
+            spacingStep,
+            maxSpacing,
+            minSpacing,
             removeBold: Boolean(candidate.removeBold),
             removeItalics: Boolean(candidate.removeItalics),
             removeUnderline: Boolean(candidate.removeUnderline),
             highlightEnabled: Boolean(candidate.highlightEnabled),
+            highlighterColor: safeHighlighterColor,
             lineGuideEnabled: Boolean(candidate.lineGuideEnabled),
             lineGuideYRatio: clampNumber(
                 candidate.lineGuideYRatio,
@@ -91,11 +267,45 @@
                 1,
                 0.5
             ),
-            noteEnabled: Boolean(candidate.noteEnabled)
+            lineGuideBlurEnabled:
+                typeof candidate.lineGuideBlurEnabled ===
+                "boolean"
+                    ? candidate.lineGuideBlurEnabled
+                    : defaultGlobalState.lineGuideBlurEnabled,
+            lineGuideThickness: clampNumber(
+                candidate.lineGuideThickness,
+                1,
+                5,
+                defaultGlobalState.lineGuideThickness
+            ),
+            lineGuideColor: premiumUnlocked
+                ? requestedLineGuideColor
+                : defaultGlobalState.lineGuideColor,
+            noteEnabled: Boolean(candidate.noteEnabled),
+            noteColor: safeNoteColor,
+            speechVoiceURI:
+                premiumUnlocked &&
+                typeof candidate.speechVoiceURI === "string"
+                    ? candidate.speechVoiceURI
+                    : defaultGlobalState.speechVoiceURI,
+            toolbarColor: safeToolbarColor,
+            stickerEnabled:
+                premiumUnlocked &&
+                Boolean(candidate.stickerEnabled),
+            selectedStickerPack: safeStickerPack,
+            selectedStickerId: safeStickerId
         };
 
         if (normalized.highlightEnabled && normalized.noteEnabled) {
             normalized.noteEnabled = false;
+        }
+
+        if (
+            normalized.stickerEnabled &&
+            (normalized.highlightEnabled ||
+                normalized.noteEnabled)
+        ) {
+            normalized.stickerEnabled = false;
         }
 
         return normalized;
@@ -115,6 +325,16 @@
                 : [],
             notes: Array.isArray(candidate.notes)
                 ? candidate.notes
+                      .filter(
+                          (item) =>
+                              item &&
+                              typeof item === "object" &&
+                              !Array.isArray(item)
+                      )
+                      .map((item) => ({ ...item }))
+                : [],
+            stickers: Array.isArray(candidate.stickers)
+                ? candidate.stickers
                       .filter(
                           (item) =>
                               item &&

@@ -1,0 +1,97 @@
+{
+  "palettes": [
+    {
+      "id": "text-annotation",
+      "name": "Text Annotation Pack",
+      "stickers": [
+        {
+          "id": "question",
+          "name": "Question",
+          "fileName": "question.webp"
+        },
+        {
+          "id": "important",
+          "name": "Important",
+          "fileName": "important.webp"
+        },
+        {
+          "id": "star",
+          "name": "Star",
+          "fileName": "star.webp"
+        },
+        {
+          "id": "check",
+          "name": "Check",
+          "fileName": "check.webp"
+        },
+        {
+          "id": "idea",
+          "name": "Idea",
+          "fileName": "idea.webp"
+        }
+      ]
+    },
+    {
+      "id": "study",
+      "name": "Study Pack",
+      "stickers": [
+        {
+          "id": "book",
+          "name": "Book",
+          "fileName": "book.webp"
+        },
+        {
+          "id": "pencil",
+          "name": "Pencil",
+          "fileName": "pencil.webp"
+        },
+        {
+          "id": "pin",
+          "name": "Pin",
+          "fileName": "pin.webp"
+        },
+        {
+          "id": "search",
+          "name": "Search",
+          "fileName": "search.webp"
+        },
+        {
+          "id": "brain",
+          "name": "Brain",
+          "fileName": "brain.webp"
+        }
+      ]
+    },
+    {
+      "id": "encouragement",
+      "name": "Encouragement Pack",
+      "stickers": [
+        {
+          "id": "thumbs-up",
+          "name": "Thumbs Up",
+          "fileName": "thumbs-up.webp"
+        },
+        {
+          "id": "celebrate",
+          "name": "Celebrate",
+          "fileName": "celebrate.webp"
+        },
+        {
+          "id": "trophy",
+          "name": "Trophy",
+          "fileName": "trophy.webp"
+        },
+        {
+          "id": "one-hundred",
+          "name": "One Hundred",
+          "fileName": "one-hundred.webp"
+        },
+        {
+          "id": "sparkle",
+          "name": "Sparkle",
+          "fileName": "sparkle.webp"
+        }
+      ]
+    }
+  ]
+}

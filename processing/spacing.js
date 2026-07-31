@@ -1,8 +1,8 @@
 // Letter-spacing control.
 let spacing = 100;
-const spacingStep = 25;
-const maxSpacing = 200;
-const minSpacing = 50;
+let spacingStep = 25;
+let maxSpacing = 200;
+let minSpacing = 50;
 
 const spacingInput = adaptShadow.getElementById(
     "adapt-spacing-value"
@@ -15,6 +15,23 @@ function normalizeSpacing(value) {
         Math.max(fallback, minSpacing),
         maxSpacing
     );
+}
+
+function configureSpacingControl(options = {}) {
+    spacingStep = Math.min(
+        Math.max(Number(options.step) || 25, 1),
+        50
+    );
+    maxSpacing = Math.min(
+        Math.max(Number(options.maximum) || 200, 100),
+        300
+    );
+    minSpacing = Math.min(
+        Math.max(Number(options.minimum) || 50, 25),
+        100
+    );
+
+    return applySpacing(spacing);
 }
 
 function applySpacing(newSpacing, options = {}) {

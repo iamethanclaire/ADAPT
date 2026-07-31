@@ -55,9 +55,9 @@
 
     const speakerCursorSvg = [
         '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">',
-        '<path d="M2 2l8.6 21.1 3.1-7.4 7.5-3.1L2 2z" fill="white" stroke="#17202a" stroke-width="1.6" stroke-linejoin="round"/>',
-        '<path d="M18 19h3l4-3v10l-4-3h-3z" fill="#1479b8" stroke="white" stroke-width="1.2" stroke-linejoin="round"/>',
-        '<path d="M26.2 18.3a4.3 4.3 0 010 5.4M28.4 16.2a7.2 7.2 0 010 9.6" fill="none" stroke="#1479b8" stroke-width="1.8" stroke-linecap="round"/>',
+        `<path d="M2 2l8.6 21.1 3.1-7.4 7.5-3.1L2 2z" fill="${ADAPT.colors.white}" stroke="${ADAPT.colors.speakerCursorOutline}" stroke-width="1.6" stroke-linejoin="round"/>`,
+        `<path d="M18 19h3l4-3v10l-4-3h-3z" fill="${ADAPT.colors.speakerCursorBlue}" stroke="${ADAPT.colors.white}" stroke-width="1.2" stroke-linejoin="round"/>`,
+        `<path d="M26.2 18.3a4.3 4.3 0 010 5.4M28.4 16.2a7.2 7.2 0 010 9.6" fill="none" stroke="${ADAPT.colors.speakerCursorBlue}" stroke-width="1.8" stroke-linecap="round"/>`,
         "</svg>"
     ].join("");
 
@@ -88,6 +88,7 @@
     let currentText = "";
     let activeUtterance = null;
     let availableVoices = [];
+    let preferredVoiceURI = "default";
 
     function isSpeechSupported() {
         return (
@@ -141,6 +142,19 @@
             matchingVoices.length
                 ? matchingVoices
                 : availableVoices;
+
+        if (preferredVoiceURI !== "default") {
+            const selectedVoice =
+                availableVoices.find(
+                    (voice) =>
+                        voice.voiceURI ===
+                        preferredVoiceURI
+                );
+
+            if (selectedVoice) {
+                return selectedVoice;
+            }
+        }
 
         for (
             const preferredName of
@@ -942,7 +956,7 @@
                 height: `${rect.height}px`,
                 borderRadius: "2px",
                 background:
-                    "rgba(135, 206, 250, 0.58)"
+                    ADAPT.colors.speakHighlight
             });
 
             overlay.appendChild(highlight);
@@ -1345,6 +1359,32 @@
 
     globalThis.ADAPTSpeak = Object.freeze({
         toggle,
+
+        setPreferredVoice(voiceURI) {
+            preferredVoiceURI =
+                typeof voiceURI === "string" &&
+                voiceURI
+                    ? voiceURI
+                    : "default";
+
+            return preferredVoiceURI;
+        },
+
+        getPreferredVoiceURI() {
+            return preferredVoiceURI;
+        },
+
+        getVoices() {
+            loadAvailableVoices();
+
+            return availableVoices.map((voice) => ({
+                name: voice.name,
+                lang: voice.lang,
+                voiceURI: voice.voiceURI,
+                default: voice.default,
+                localService: voice.localService
+            }));
+        },
 
         isEnabled() {
             return enabled;

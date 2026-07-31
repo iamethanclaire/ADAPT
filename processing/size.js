@@ -1,8 +1,8 @@
 // Font-size control.
 let size = 100;
-const sizeStep = 5;
-const maxSize = 150;
-const minSize = 80;
+let sizeStep = 5;
+let maxSize = 150;
+let minSize = 80;
 
 const sizeInput = adaptShadow.getElementById("adapt-size-value");
 
@@ -10,6 +10,23 @@ function normalizeSize(value) {
     const parsed = Number.parseInt(value, 10);
     const fallback = Number.isFinite(parsed) ? parsed : 100;
     return Math.min(Math.max(fallback, minSize), maxSize);
+}
+
+function configureSizeControl(options = {}) {
+    sizeStep = Math.min(
+        Math.max(Number(options.step) || 5, 1),
+        50
+    );
+    maxSize = Math.min(
+        Math.max(Number(options.maximum) || 150, 100),
+        200
+    );
+    minSize = Math.min(
+        Math.max(Number(options.minimum) || 80, 50),
+        100
+    );
+
+    return applySize(size);
 }
 
 function applySize(newSize, options = {}) {

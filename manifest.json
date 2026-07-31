@@ -16,7 +16,8 @@
     {
       "resources": [
         "images/*",
-        "fonts/*.woff2"
+        "fonts/*.woff2",
+        "stickerPallet.json"
       ],
       "matches": [
         "<all_urls>"
@@ -30,6 +31,7 @@
       ],
       "js": [
         "theme.js",
+        "sticker-pallet.js",
         "toolbar-template.js",
         "content.js",
         "state.js",
@@ -44,8 +46,10 @@
         "tools/lineguide.js",
         "tools/highlighter.js",
         "tools/note.js",
+        "tools/sticker.js",
         "tools/define.js",
         "tools/speak.js",
+        "settings.js",
         "toolbar.js"
       ],
       "run_at": "document_idle"

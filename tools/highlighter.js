@@ -1,5 +1,4 @@
 // Persistent, text-anchored page highlighter.
-const highlighterColor = "#ffff00";
 const HIGHLIGHT_VERSION = 2;
 const QUOTE_CONTEXT_LENGTH = 64;
 const RESTORE_DELAYS = [0, 250, 1000, 3000];
@@ -15,6 +14,8 @@ const REJECTED_TEXT_SELECTOR = [
 ].join(", ");
 
 let isHighlighting = false;
+let selectedHighlighterColor =
+    ADAPT.colors.yellowDefault;
 let highlightRecords = [];
 let isApplyingHighlights = false;
 let restoreTimer = null;
@@ -30,12 +31,17 @@ let saveChain = Promise.resolve();
     style.id = "adapt-highlighter-styles";
     style.textContent = `
         .adapt-highlight-span {
-            background-color: transparent;
+            background-color:
+                ${ADAPT.colors.transparent};
             cursor: inherit;
         }
 
         html.adapt-extension-active .adapt-highlight-span {
-            background-color: ${highlighterColor};
+            background-color:
+                var(
+                    --adapt-highlight-color,
+                    ${ADAPT.colors.yellowDefault}
+                );
             cursor: pointer;
         }
     `;
@@ -335,11 +341,21 @@ function normalizeHighlightRecord(record) {
         prefix:
             typeof record.prefix === "string" ? record.prefix : "",
         suffix:
-            typeof record.suffix === "string" ? record.suffix : ""
+            typeof record.suffix === "string"
+                ? record.suffix
+                : "",
+        color: ADAPT.getHighlighterColor(
+            record.color
+        ).value
     };
 }
 
-function createHighlightRecord(range, block, existingId) {
+function createHighlightRecord(
+    range,
+    block,
+    existingId,
+    color = selectedHighlighterColor
+) {
     const blockIndex = buildTextIndex(block);
     const startOffset = getBoundaryOffset(
         blockIndex,
@@ -387,6 +403,7 @@ function createHighlightRecord(range, block, existingId) {
         endOffset,
         exact,
         text: exact,
+        color: ADAPT.getHighlighterColor(color).value,
         prefix:
             documentStart === null
                 ? ""
@@ -700,6 +717,12 @@ function wrapHighlightRange(range, record) {
             const span = document.createElement("span");
             span.className = "adapt-highlight-span";
             span.dataset.adaptHighlightId = record.id;
+            span.style.setProperty(
+                "--adapt-highlight-color",
+                ADAPT.getHighlighterColor(
+                    record.color
+                ).value
+            );
 
             selectedNode.parentNode.insertBefore(span, selectedNode);
             span.appendChild(selectedNode);
@@ -1116,7 +1139,8 @@ function restoreMissingHighlights(options = {}) {
             createHighlightRecord(
                 located.range,
                 located.block,
-                record.id
+                record.id,
+                record.color
             ) || record;
 
         if (!wrapHighlightRange(located.range, refreshedRecord)) {
@@ -1285,7 +1309,9 @@ function handleHighlightSelection(event) {
                 expandRangeToExistingHighlights(range, block);
             const record = createHighlightRecord(
                 expanded.range,
-                block
+                block,
+                undefined,
+                selectedHighlighterColor
             );
 
             if (!record?.blockPath || !record.exact) {
@@ -1474,6 +1500,15 @@ globalThis.ADAPTHighlighter = Object.freeze({
     toggle: toggleHighlight,
     restore: restoreHighlights,
     retryRestore: restoreMissingHighlights,
+    setSelectedColor(color) {
+        selectedHighlighterColor =
+            ADAPT.getHighlighterColor(color).value;
+
+        return selectedHighlighterColor;
+    },
+    getSelectedColor() {
+        return selectedHighlighterColor;
+    },
     getHighlights: () =>
         highlightRecords.map((record) => ({ ...record }))
 });

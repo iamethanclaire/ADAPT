@@ -25,6 +25,44 @@ adaptHost.id = "adapt-host";
 adaptHost.dataset.adaptOwned = "true";
 document.body.appendChild(adaptHost);
 
+function applyToolbarPalette(themeValue = "system") {
+    const palette =
+        ADAPT.getToolbarPalette(themeValue);
+
+    adaptHost.style.setProperty(
+        "--adapt-toolbar-bg",
+        palette.background
+    );
+    adaptHost.style.setProperty(
+        "--adapt-toolbar-input",
+        palette.input
+    );
+    adaptHost.style.setProperty(
+        "--adapt-toolbar-text",
+        palette.text
+    );
+    adaptHost.style.setProperty(
+        "--adapt-toolbar-border",
+        palette.border
+    );
+    adaptHost.style.setProperty(
+        "--adapt-toolbar-hover",
+        palette.hover
+    );
+    adaptHost.style.setProperty(
+        "--adapt-toolbar-menu",
+        palette.menu
+    );
+    adaptHost.style.setProperty(
+        "--adapt-toolbar-selected-tool",
+        palette.selectedTool
+    );
+
+    return palette;
+}
+
+applyToolbarPalette();
+
 const adaptShadow = adaptHost.attachShadow({ mode: "open" });
 
 const adaptShadowStyles = document.createElement("style");
@@ -61,9 +99,13 @@ adaptShadowStyles.textContent = `
         gap: 8px;
         padding: 0;
         overflow: visible;
-        color: ${textColor};
-        background: ${bgColor};
-        border-bottom: 1px solid ${borderColor};
+        color:
+            var(--adapt-toolbar-text, ${textColor});
+        background:
+            var(--adapt-toolbar-bg, ${bgColor});
+        border-bottom:
+            1px solid
+            var(--adapt-toolbar-border, ${borderColor});
         font: 14px/1 Arial, Helvetica, sans-serif;
     }
 
@@ -74,9 +116,13 @@ adaptShadowStyles.textContent = `
         z-index: 2147483600;
         display: none;
         padding: 2px 12px;
-        color: ${textColor};
-        background: ${bgColor};
-        border: 1px solid ${borderColor};
+        color:
+            var(--adapt-toolbar-text, ${textColor});
+        background:
+            var(--adapt-toolbar-bg, ${bgColor});
+        border:
+            1px solid
+            var(--adapt-toolbar-border, ${borderColor});
         border-top: 0;
         border-radius: 0 0 8px 8px;
         cursor: pointer;
@@ -92,7 +138,11 @@ adaptShadowStyles.textContent = `
         min-width: 1px;
         height: 24px;
         flex: 0 0 1px;
-        background: ${borderColor};
+        background:
+            var(
+                --adapt-toolbar-border,
+                ${borderColor}
+            );
     }
 
     #adapt-toolbar.adapt-compact .adapt-value-input {
@@ -115,10 +165,156 @@ adaptShadowStyles.textContent = `
     }
 
     .adapt-dropdown-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
         font-size: 14px;
         font-style: normal;
         font-weight: 400;
         text-decoration: none;
+    }
+
+    .adapt-premium-lock,
+    .adapt-button-lock {
+        font-family:
+            Arial,
+            Helvetica,
+            sans-serif !important;
+        font-size: 10px;
+        line-height: 1;
+    }
+
+    .adapt-button-lock {
+        position: absolute;
+        top: -3px;
+        right: -3px;
+        display: grid;
+        place-items: center;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background:
+            var(--adapt-toolbar-bg, ${bgColor});
+        pointer-events: none;
+    }
+
+    .adapt-sticker-option {
+        width: 36px;
+        height: 36px;
+        display: grid !important;
+        place-items: center;
+        padding: 0 !important;
+        border:
+            2px solid
+            var(
+                --adapt-toolbar-border,
+                ${borderColor}
+            ) !important;
+        border-radius: 9px !important;
+        font-size: 21px;
+        line-height: 1;
+    }
+
+    .adapt-highlight-palette-grid {
+        display: grid;
+        grid-template-columns: repeat(8, 24px);
+        gap: 6px;
+    }
+
+    .adapt-highlight-color-option {
+        position: relative;
+        width: 24px;
+        height: 24px;
+        display: grid !important;
+        place-items: center;
+        padding: 0 !important;
+        color:
+            var(
+                --adapt-toolbar-text,
+                ${textColor}
+            ) !important;
+        background:
+            var(
+                --adapt-highlight-swatch
+            ) !important;
+        border:
+            2px solid
+            var(
+                --adapt-toolbar-border,
+                ${borderColor}
+            ) !important;
+        border-radius: 50% !important;
+        cursor: pointer;
+    }
+
+    .adapt-highlight-color-option.adapt-highlight-color-selected {
+        outline:
+            2px solid
+            var(
+                --adapt-toolbar-selected-tool,
+                ${selectedToolColor}
+            );
+        outline-offset: 2px;
+    }
+
+    .adapt-highlight-color-option .adapt-premium-lock {
+        display: grid;
+        place-items: center;
+        width: 100%;
+        height: 100%;
+        font-size: 8px;
+        pointer-events: none;
+    }
+
+    .adapt-note-palette-row {
+        display: flex;
+        gap: 6px;
+    }
+
+    .adapt-note-color-option {
+        position: relative;
+        width: 28px;
+        height: 28px;
+        display: grid !important;
+        place-items: center;
+        padding: 0 !important;
+        color:
+            var(
+                --adapt-toolbar-text,
+                ${textColor}
+            ) !important;
+        background:
+            var(
+                --adapt-note-swatch
+            ) !important;
+        border:
+            2px solid
+            var(
+                --adapt-toolbar-border,
+                ${borderColor}
+            ) !important;
+        border-radius: 7px !important;
+        cursor: pointer;
+    }
+
+    .adapt-note-color-option.adapt-note-color-selected {
+        outline:
+            2px solid
+            var(
+                --adapt-toolbar-selected-tool,
+                ${selectedToolColor}
+            );
+        outline-offset: 2px;
+    }
+
+    .adapt-note-color-option .adapt-premium-lock {
+        display: grid;
+        place-items: center;
+        width: 100%;
+        height: 100%;
+        font-size: 8px;
+        pointer-events: none;
     }
 `;
 adaptShadow.appendChild(adaptShadowStyles);
@@ -216,7 +412,8 @@ setToolbarHidden(false);
 
 globalThis.ADAPTLayout = Object.freeze({
     setToolbarHidden,
-    updateCompactToolbar
+    updateCompactToolbar,
+    applyToolbarPalette
 });
 
 // Numeric text controls require measured original values. This manager stores

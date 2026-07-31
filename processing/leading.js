@@ -1,8 +1,8 @@
 // Line-spacing control.
 let leading = 100;
-const leadingStep = 10;
-const maxLeading = 200;
-const minLeading = 80;
+let leadingStep = 10;
+let maxLeading = 200;
+let minLeading = 80;
 
 const leadingInput = adaptShadow.getElementById(
     "adapt-leading-value"
@@ -15,6 +15,23 @@ function normalizeLeading(value) {
         Math.max(fallback, minLeading),
         maxLeading
     );
+}
+
+function configureLeadingControl(options = {}) {
+    leadingStep = Math.min(
+        Math.max(Number(options.step) || 10, 1),
+        50
+    );
+    maxLeading = Math.min(
+        Math.max(Number(options.maximum) || 200, 100),
+        300
+    );
+    minLeading = Math.min(
+        Math.max(Number(options.minimum) || 80, 50),
+        100
+    );
+
+    return applyLeading(leading);
 }
 
 function applyLeading(newLeading, options = {}) {

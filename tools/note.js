@@ -33,6 +33,7 @@
     const notes = new Map();
 
     let isEnabled = false;
+    let selectedNoteColor = "yellow";
     let isShiftPressed = false;
     let nextNoteId = 1;
     let activeNoteId = null;
@@ -79,14 +80,16 @@
 
                 transform: translate(-50%, -50%);
 
-                background: transparent;
+                background:
+                    ${ADAPT.colors.transparent};
                 border: none;
 
                 cursor: pointer;
                 appearance: none;
 
                 filter: drop-shadow(
-                    0 3px 4px rgba(0, 0, 0, 0.28)
+                    0 3px 4px
+                    ${ADAPT.colors.shadowMedium}
                 );
 
                 z-index: 99998;
@@ -99,7 +102,9 @@
             }
 
             .adapt-note-icon:focus-visible {
-                outline: 3px solid #2563eb;
+                outline:
+                    3px solid
+                    ${ADAPT.colors.focusBlue};
                 outline-offset: 3px;
                 border-radius: 5px;
             }
@@ -125,9 +130,11 @@
                     translate(-50%, -50%)
                     scale(1.08);
 
-                filter: none;
+                filter: none !important;
 
-                outline: 3px solid #ff0000;
+                outline:
+                    3px solid
+                    ${ADAPT.colors.deleteRed};
                 outline-offset: 3px;
                 border-radius: 5px;
             }
@@ -143,7 +150,8 @@
                 box-sizing: border-box;
                 padding: 20px;
 
-                background: rgba(15, 23, 42, 0.38);
+                background:
+                    ${ADAPT.colors.overlayScrim};
 
                 cursor: default !important;
 
@@ -178,11 +186,16 @@
 
                 overflow: hidden;
 
-                background: #ffdd55ff;
+                background:
+                    var(
+                        --adapt-note-background,
+                        ${ADAPT.noteColors[0].background}
+                    );
                 border-radius: 10px;
 
                 box-shadow:
-                    0 24px 70px rgba(0, 0, 0, 0.42);
+                    0 24px 70px
+                    ${ADAPT.colors.shadowHeavy};
 
                 font-family:
                     Arial,
@@ -200,15 +213,27 @@
                 gap: 12px;
                 padding: 8px 9px 8px 16px;
 
-                background: #ffcc00ff;
+                background:
+                    var(
+                        --adapt-note-header,
+                        ${ADAPT.noteColors[0].header}
+                    );
                 border-bottom:
-                    1px solid #ffcc00ff;
+                    1px solid
+                    var(
+                        --adapt-note-header,
+                        ${ADAPT.noteColors[0].header}
+                    );
             }
 
             .adapt-note-title {
                 margin: 0;
 
-                color: #000000;
+                color:
+                    var(
+                        --adapt-note-text,
+                        ${ADAPT.noteColors[0].text}
+                    );
 
                 font-size: 16px;
                 font-weight: 700;
@@ -218,7 +243,9 @@
                 border: none !important;
                 border-bottom: none !important;
                 box-shadow: none !important;
-                background: transparent !important;
+                background:
+                    ${ADAPT.colors.transparent}
+                    !important;
             }
 
             .adapt-note-title::before,
@@ -239,8 +266,13 @@
                 margin: 0;
                 padding: 0;
 
-                color: #000000;
-                background: transparent;
+                color:
+                    var(
+                        --adapt-note-text,
+                        ${ADAPT.noteColors[0].text}
+                    );
+                background:
+                    ${ADAPT.colors.transparent};
                 border: none;
                 border-radius: 6px;
 
@@ -254,11 +286,14 @@
             }
 
             .adapt-note-close:hover {
-                background: rgba(71, 54, 0, 0.12);
+                background:
+                    ${ADAPT.colors.noteHover};
             }
 
             .adapt-note-close:focus-visible {
-                outline: 3px solid #2563eb;
+                outline:
+                    3px solid
+                    ${ADAPT.colors.focusBlue};
                 outline-offset: 1px;
             }
 
@@ -273,8 +308,13 @@
 
                 padding: 18px;
 
-                color: #332900;
-                background: transparent;
+                color:
+                    var(
+                        --adapt-note-text,
+                        ${ADAPT.noteColors[0].text}
+                    );
+                background:
+                    ${ADAPT.colors.transparent};
 
                 border: none;
                 outline: none;
@@ -287,7 +327,8 @@
             }
 
             .adapt-note-textarea::placeholder {
-                color: rgba(71, 54, 0, 0.58);
+                color:
+                    ${ADAPT.colors.notePlaceholder};
             }
         `;
 
@@ -483,6 +524,21 @@
         }
 
         activeNoteId = noteId;
+        const noteTheme = ADAPT.getNoteColor(
+            note.color
+        );
+        overlay.style.setProperty(
+            "--adapt-note-background",
+            noteTheme.background
+        );
+        overlay.style.setProperty(
+            "--adapt-note-header",
+            noteTheme.header
+        );
+        overlay.style.setProperty(
+            "--adapt-note-text",
+            noteTheme.text
+        );
         textarea.value = note.text;
         overlay.hidden = false;
 
@@ -584,8 +640,17 @@
             y: 0,
 
             text: String(initialText || ""),
+            color: ADAPT.getNoteColor(
+                options.color || selectedNoteColor
+            ).id,
             element: icon
         };
+
+        const noteTheme = ADAPT.getNoteColor(
+            note.color
+        );
+        iconImage.style.filter =
+            noteTheme.iconFilter;
 
         notes.set(noteId, note);
         updateIconLabel(note);
@@ -623,7 +688,8 @@
             id: note.id,
             xRatio: note.xRatio,
             yRatio: note.yRatio,
-            text: note.text
+            text: note.text,
+            color: note.color
         }));
     }
 
@@ -678,6 +744,7 @@
                         id: Number.isInteger(savedNote.id)
                             ? savedNote.id
                             : undefined,
+                        color: savedNote.color,
                         skipSave: true
                     }
                 );
@@ -890,6 +957,17 @@
         save: saveNotes,
 
         isEnabled: () => isEnabled,
+
+        setSelectedColor(colorId) {
+            selectedNoteColor =
+                ADAPT.getNoteColor(colorId).id;
+
+            return selectedNoteColor;
+        },
+
+        getSelectedColor() {
+            return selectedNoteColor;
+        },
 
         getNotes: () => {
             return serializeNotes();

@@ -10,20 +10,44 @@
         "adapt-underline"
     ]);
 
+    let currentPalette =
+        ADAPT.getToolbarPalette("system");
+
     let settings = {
         isActive: true,
         toolbarHidden: false,
+        premiumUnlocked: false,
         font: "page-default",
         size: 100,
+        sizeStep: 5,
+        maxSize: 150,
+        minSize: 80,
         leading: 100,
+        leadingStep: 10,
+        maxLeading: 200,
+        minLeading: 80,
         spacing: 100,
+        spacingStep: 25,
+        maxSpacing: 200,
+        minSpacing: 50,
         removeBold: false,
         removeItalics: false,
         removeUnderline: false,
         highlightEnabled: false,
+        highlighterColor:
+            ADAPT.colors.yellowDefault,
         lineGuideEnabled: false,
         lineGuideYRatio: 0.5,
-        noteEnabled: false
+        lineGuideBlurEnabled: true,
+        lineGuideThickness: 2,
+        lineGuideColor: ADAPT.lineColor,
+        noteEnabled: false,
+        noteColor: "yellow",
+        speechVoiceURI: "default",
+        toolbarColor: "system",
+        stickerEnabled: false,
+        selectedStickerPack: "text-annotation",
+        selectedStickerId: "question"
     };
 
     let isApplyingSettings = false;
@@ -49,6 +73,27 @@
     );
 
     const logo = getToolbarElement("adapt-logo");
+    const highlighterButton = getToolbarElement(
+        "adapt-highlight"
+    );
+    const highlighterMenu = getToolbarElement(
+        "adapt-highlight-menu"
+    );
+    const noteButton = getToolbarElement(
+        "adapt-note"
+    );
+    const noteMenu = getToolbarElement(
+        "adapt-note-menu"
+    );
+    const stickerButton = getToolbarElement(
+        "adapt-sticker"
+    );
+    const stickerMenu = getToolbarElement(
+        "adapt-sticker-menu"
+    );
+    const stickerLock = getToolbarElement(
+        "adapt-sticker-lock"
+    );
 
     function getSelectedButtonColor(
         buttonId,
@@ -56,13 +101,13 @@
     ) {
         if (alterationButtonIds.has(buttonId)) {
             return hover
-                ? hoverSelectedAlterationColor
-                : selectedAlterationColor;
+                ? currentPalette.selectedAlterationHover
+                : currentPalette.selectedAlteration;
         }
 
         return hover
-            ? hoverSelectedToolColor
-            : selectedToolColor;
+            ? currentPalette.selectedToolHover
+            : currentPalette.selectedTool;
     }
 
     function renderButton(buttonId) {
@@ -77,7 +122,7 @@
 
         button.style.background = isSelected
             ? getSelectedButtonColor(buttonId)
-            : "transparent";
+            : ADAPT.colors.transparent;
 
         button.setAttribute(
             "aria-pressed",
@@ -128,6 +173,11 @@
             "adapt-note",
             settings.noteEnabled
         );
+
+        setButtonActive(
+            "adapt-sticker",
+            settings.stickerEnabled
+        );
     }
 
     function applyTypography() {
@@ -144,17 +194,14 @@
     }
 
     function applyFontSetting() {
-        const fontObject = ADAPT.fonts.find(
-            (font) =>
-                font.value === settings.font
-        );
+        const fontObject =
+            ADAPT.getFont(settings.font);
 
         const safeFont =
-            fontObject ||
-            ADAPT.fonts.find(
-                (font) =>
-                    font.value === "page-default"
-            );
+            fontObject.premium &&
+            !settings.premiumUnlocked
+                ? ADAPT.getFont("page-default")
+                : fontObject;
 
         settings.font = safeFont.value;
 
@@ -164,7 +211,10 @@
         );
 
         dropdownLabel.textContent =
-            safeFont.label;
+            safeFont.upload &&
+            globalThis.ADAPTFont?.getUploadedFontName?.()
+                ? globalThis.ADAPTFont.getUploadedFontName()
+                : safeFont.label;
 
         dropdownLabel.style.fontFamily =
             safeFont.value === "page-default"
@@ -173,6 +223,23 @@
     }
 
     function applyToolRuntime() {
+        globalThis.ADAPTHighlighter?.setSelectedColor(
+            settings.highlighterColor
+        );
+
+        globalThis.ADAPTNote?.setSelectedColor(
+            settings.noteColor
+        );
+
+        globalThis.ADAPTSpeak?.setPreferredVoice(
+            settings.speechVoiceURI
+        );
+
+        globalThis.ADAPTSticker?.setSelection(
+            settings.selectedStickerPack,
+            settings.selectedStickerId
+        );
+
         toggleHighlight(
             settings.isActive &&
                 settings.highlightEnabled
@@ -187,8 +254,19 @@
             settings.isActive &&
                 settings.lineGuideEnabled,
             {
-                yRatio: settings.lineGuideYRatio
+                yRatio: settings.lineGuideYRatio,
+                blurEnabled:
+                    settings.lineGuideBlurEnabled,
+                thickness:
+                    settings.lineGuideThickness,
+                color: settings.lineGuideColor
             }
+        );
+
+        globalThis.ADAPTSticker?.toggle(
+            settings.isActive &&
+                settings.premiumUnlocked &&
+                settings.stickerEnabled
         );
 
         globalThis.ADAPTSpeak?.toggle(
@@ -209,6 +287,16 @@
     function applyAllSettings() {
         isApplyingSettings = true;
 
+        currentPalette =
+            globalThis.ADAPTLayout.applyToolbarPalette(
+                settings.toolbarColor
+            );
+        applyToolbarAppearance();
+        refreshFontDropdown();
+        renderHighlighterMenu();
+        renderNoteMenu();
+        renderStickerMenu();
+
         document.documentElement.classList.toggle(
             "adapt-extension-active",
             settings.isActive
@@ -228,6 +316,22 @@
             settings.removeUnderline
         );
 
+        configureSizeControl({
+            step: settings.sizeStep,
+            minimum: settings.minSize,
+            maximum: settings.maxSize
+        });
+        configureLeadingControl({
+            step: settings.leadingStep,
+            minimum: settings.minLeading,
+            maximum: settings.maxLeading
+        });
+        configureSpacingControl({
+            step: settings.spacingStep,
+            minimum: settings.minSpacing,
+            maximum: settings.maxSpacing
+        });
+
         applySize(settings.size);
         applyLeading(settings.leading);
         applySpacing(settings.spacing);
@@ -237,6 +341,14 @@
         applyTypography();
         applyToolRuntime();
         syncSavedButtonStates();
+
+        if (!settings.highlightEnabled) {
+            closeHighlighterMenu();
+        }
+
+        if (!settings.noteEnabled) {
+            closeNoteMenu();
+        }
 
         logo.src = settings.isActive
             ? logoSrc
@@ -250,6 +362,15 @@
         logo.title = settings.isActive
             ? "Temporarily hide A.D.A.P.T. page changes"
             : "Reapply A.D.A.P.T. page changes";
+
+        stickerLock.style.display =
+            settings.premiumUnlocked
+                ? "none"
+                : "grid";
+        stickerButton.setAttribute(
+            "aria-disabled",
+            String(!settings.premiumUnlocked)
+        );
 
         globalThis.ADAPTLayout.setToolbarHidden(
             settings.toolbarHidden
@@ -267,6 +388,21 @@
             normalized.highlightEnabled &&
             normalized.noteEnabled
         ) {
+            normalized.noteEnabled = false;
+        }
+
+        if (normalized.highlightEnabled) {
+            normalized.noteEnabled = false;
+            normalized.stickerEnabled = false;
+        }
+
+        if (normalized.noteEnabled) {
+            normalized.highlightEnabled = false;
+            normalized.stickerEnabled = false;
+        }
+
+        if (normalized.stickerEnabled) {
+            normalized.highlightEnabled = false;
             normalized.noteEnabled = false;
         }
 
@@ -307,6 +443,255 @@
         );
     }
 
+    function applyToolbarAppearance() {
+        toolbar
+            .querySelectorAll("button")
+            .forEach((button) => {
+                button.style.color =
+                    currentPalette.text;
+            });
+
+        toolbar
+            .querySelectorAll("input")
+            .forEach((input) => {
+                input.style.background =
+                    currentPalette.input;
+                input.style.color =
+                    currentPalette.text;
+                input.style.border =
+                    `1px solid ${currentPalette.border}`;
+            });
+
+        dropdownMenu.style.background =
+            currentPalette.menu;
+        highlighterMenu.style.background =
+            currentPalette.menu;
+        highlighterMenu.style.borderColor =
+            currentPalette.border;
+        noteMenu.style.background =
+            currentPalette.menu;
+        noteMenu.style.borderColor =
+            currentPalette.border;
+        stickerMenu.style.background =
+            currentPalette.menu;
+        stickerMenu.style.borderColor =
+            currentPalette.border;
+    }
+
+    function styleFontDropdownItems() {
+        dropdownMenu
+            .querySelectorAll(
+                ".adapt-dropdown-item"
+            )
+            .forEach((item) => {
+                item.style.padding =
+                    "8px 12px";
+                item.style.cursor =
+                    "pointer";
+                item.style.color =
+                    currentPalette.text;
+                item.style.borderBottom =
+                    `1px solid ${currentPalette.border}`;
+            });
+    }
+
+    function refreshFontDropdown() {
+        dropdownMenu.innerHTML =
+            ADAPT.getFontDropdownHTML(
+                settings.premiumUnlocked
+            );
+        styleFontDropdownItems();
+    }
+
+    function renderHighlighterMenu() {
+        const selectedColor =
+            settings.highlighterColor.toLowerCase();
+
+        highlighterMenu.innerHTML = `
+            <div class="adapt-highlight-palette-grid">
+                ${ADAPT.highlighterColors
+                    .map((color) => {
+                        const locked =
+                            color.premium &&
+                            !settings.premiumUnlocked;
+                        const selected =
+                            color.value.toLowerCase() ===
+                            selectedColor;
+                        const accessibleLabel =
+                            locked
+                                ? `${color.label}, locked`
+                                : color.label;
+
+                        return `
+                            <button
+                                type="button"
+                                class="adapt-highlight-color-option${
+                                    selected
+                                        ? " adapt-highlight-color-selected"
+                                        : ""
+                                }"
+                                data-highlight-color="${color.value}"
+                                data-locked="${String(locked)}"
+                                aria-label="${accessibleLabel}"
+                                aria-pressed="${String(selected)}"
+                                style="
+                                    --adapt-highlight-swatch: ${color.value};
+                                "
+                            >${
+                                locked
+                                    ? '<span class="adapt-premium-lock" aria-hidden="true">🔒</span>'
+                                    : ""
+                            }</button>
+                        `;
+                    })
+                    .join("")}
+            </div>
+        `;
+    }
+
+    function openHighlighterMenu() {
+        highlighterMenu.style.display = "block";
+        highlighterButton.setAttribute(
+            "aria-expanded",
+            "true"
+        );
+    }
+
+    function closeHighlighterMenu() {
+        highlighterMenu.style.display = "none";
+        highlighterButton.setAttribute(
+            "aria-expanded",
+            "false"
+        );
+    }
+
+    function renderNoteMenu() {
+        noteMenu.innerHTML = `
+            <div class="adapt-note-palette-row">
+                ${ADAPT.noteColors
+                    .map((color) => {
+                        const locked =
+                            color.premium &&
+                            !settings.premiumUnlocked;
+                        const selected =
+                            color.id ===
+                            settings.noteColor;
+                        const accessibleLabel =
+                            locked
+                                ? `${color.label}, locked`
+                                : color.label;
+
+                        return `
+                            <button
+                                type="button"
+                                class="adapt-note-color-option${
+                                    selected
+                                        ? " adapt-note-color-selected"
+                                        : ""
+                                }"
+                                data-note-color="${color.id}"
+                                data-locked="${String(locked)}"
+                                aria-label="${accessibleLabel}"
+                                aria-pressed="${String(selected)}"
+                                style="
+                                    --adapt-note-swatch: ${color.background};
+                                "
+                            >${
+                                locked
+                                    ? '<span class="adapt-premium-lock" aria-hidden="true">🔒</span>'
+                                    : ""
+                            }</button>
+                        `;
+                    })
+                    .join("")}
+            </div>
+        `;
+    }
+
+    function openNoteMenu() {
+        noteMenu.style.display = "block";
+        noteButton.setAttribute(
+            "aria-expanded",
+            "true"
+        );
+    }
+
+    function closeNoteMenu() {
+        noteMenu.style.display = "none";
+        noteButton.setAttribute(
+            "aria-expanded",
+            "false"
+        );
+    }
+
+    function renderStickerMenu() {
+        const stickerPallet =
+            globalThis.ADAPTStickerPallet;
+        const pack = stickerPallet?.getPalette?.(
+            settings.selectedStickerPack
+        );
+
+        if (!pack) {
+            stickerMenu.innerHTML = `
+                <div style="
+                    padding: 4px;
+                    color: ${currentPalette.text};
+                    font: 600 11px/1.2 Arial, Helvetica, sans-serif;
+                    white-space: nowrap;
+                ">Loading sticker palette…</div>
+            `;
+            return;
+        }
+
+        stickerMenu.innerHTML = `
+            <div style="
+                margin: 0 0 7px;
+                color: ${currentPalette.text};
+                font: 700 11px/1.2 Arial, Helvetica, sans-serif;
+                white-space: nowrap;
+            ">${pack.name}</div>
+            <div style="
+                display: flex;
+                gap: 7px;
+            ">
+                ${pack.stickers
+                    .map((sticker) => {
+                        const selected =
+                            sticker.id ===
+                            settings.selectedStickerId;
+
+                        return `
+                            <button
+                                type="button"
+                                class="adapt-sticker-option"
+                                data-pack-id="${pack.id}"
+                                data-sticker-id="${sticker.id}"
+                                aria-label="${sticker.name}"
+                                aria-pressed="${String(selected)}"
+                                style="
+                                    background: ${
+                                        selected
+                                            ? currentPalette.selectedTool
+                                            : ADAPT.colors.transparent
+                                    };
+                                "
+                            >
+                                <img
+                                    class="adapt-sticker-option-image"
+                                    src="${stickerPallet.getStickerURL(
+                                        pack.id,
+                                        sticker.id
+                                    )}"
+                                    alt=""
+                                >
+                            </button>
+                        `;
+                    })
+                    .join("")}
+            </div>
+        `;
+    }
+
     function closeDropdown() {
         dropdownMenu.style.display = "none";
 
@@ -314,16 +699,25 @@
             "rotate(0deg)";
 
         dropdownButton.style.background =
-            "transparent";
+            ADAPT.colors.transparent;
     }
 
-    adaptShadow
+    function closeStickerMenu() {
+        stickerMenu.style.display = "none";
+        stickerButton.setAttribute(
+            "aria-expanded",
+            "false"
+        );
+    }
+
+    toolbar
         .querySelectorAll("button")
         .forEach((button) => {
             button.type = "button";
             button.style.background =
-                "transparent";
-            button.style.color = textColor;
+                ADAPT.colors.transparent;
+            button.style.color =
+                currentPalette.text;
             button.style.border = "none";
             button.style.padding = "4px 8px";
             button.style.borderRadius = "4px";
@@ -342,7 +736,7 @@
                                   button.id,
                                   true
                               )
-                            : hoverColor;
+                            : currentPalette.hover;
                 }
             );
 
@@ -362,17 +756,18 @@
             );
         });
 
-    adaptShadow
+    toolbar
         .querySelectorAll("input")
         .forEach((input) => {
             input.style.background =
-                inputColor;
+                currentPalette.input;
 
-            input.style.color = textColor;
+            input.style.color =
+                currentPalette.text;
             input.style.fontSize = "12px";
 
             input.style.border =
-                `1px solid ${borderColor}`;
+                `1px solid ${currentPalette.border}`;
 
             input.style.padding = "4px 8px";
             input.style.borderRadius = "4px";
@@ -384,7 +779,7 @@
                 "focus",
                 () => {
                     input.style.border =
-                        `1px solid ${selectedInputBorderColor}`;
+                        `1px solid ${currentPalette.selectedInputBorder}`;
                 }
             );
 
@@ -392,52 +787,77 @@
                 "blur",
                 () => {
                     input.style.border =
-                        `1px solid ${borderColor}`;
+                        `1px solid ${currentPalette.border}`;
                 }
             );
         });
 
-    adaptShadow
-        .querySelectorAll(
-            ".adapt-dropdown-item"
-        )
-        .forEach((item) => {
-            item.style.padding = "8px 12px";
-            item.style.cursor = "pointer";
-            item.style.color = textColor;
-
-            item.style.borderBottom =
-                `1px solid ${borderColor}`;
-
-            item.addEventListener(
-                "mouseenter",
-                () => {
-                    item.style.background =
-                        hoverColor;
-                }
+    dropdownMenu.addEventListener(
+        "mouseover",
+        (event) => {
+            const item = event.target.closest(
+                ".adapt-dropdown-item"
             );
 
-            item.addEventListener(
-                "mouseleave",
-                () => {
-                    item.style.background =
-                        "transparent";
-                }
+            if (item) {
+                item.style.background =
+                    currentPalette.hover;
+            }
+        }
+    );
+
+    dropdownMenu.addEventListener(
+        "mouseout",
+        (event) => {
+            const item = event.target.closest(
+                ".adapt-dropdown-item"
             );
 
-            item.addEventListener(
-                "click",
-                () => {
-                    const font =
-                        item.getAttribute(
-                            "data-value"
-                        );
+            if (item) {
+                item.style.background =
+                    ADAPT.colors.transparent;
+            }
+        }
+    );
 
-                    closeDropdown();
-                    saveAndApply({ font });
-                }
+    dropdownMenu.addEventListener(
+        "click",
+        (event) => {
+            const item = event.target.closest(
+                ".adapt-dropdown-item"
             );
-        });
+
+            if (!item) {
+                return;
+            }
+
+            const font =
+                item.getAttribute("data-value");
+            const isPremium =
+                item.dataset.premium === "true";
+            const isUpload =
+                item.dataset.upload === "true";
+
+            closeDropdown();
+
+            if (
+                isPremium &&
+                !settings.premiumUnlocked
+            ) {
+                globalThis.ADAPTSettings
+                    ?.openPurchase();
+                return;
+            }
+
+            if (isUpload) {
+                globalThis.ADAPTSettings
+                    ?.chooseFontUpload();
+                return;
+            }
+
+            saveAndApply({ font });
+        }
+    );
 
     dropdownButton.addEventListener(
         "click",
@@ -457,8 +877,96 @@
 
             dropdownButton.style.background =
                 isOpen
-                    ? "transparent"
-                    : hoverColor;
+                    ? ADAPT.colors.transparent
+                    : currentPalette.hover;
+        }
+    );
+
+    stickerMenu.addEventListener(
+        "click",
+        (event) => {
+            const option = event.target.closest(
+                ".adapt-sticker-option"
+            );
+
+            if (!option) {
+                return;
+            }
+
+            event.stopPropagation();
+
+            setButtonActive(
+                "adapt-define",
+                false
+            );
+            setButtonActive(
+                "adapt-speak",
+                false
+            );
+            globalThis.ADAPTDefine?.toggle(false);
+            globalThis.ADAPTSpeak?.toggle(false);
+
+            saveAndApply({
+                stickerEnabled: true,
+                selectedStickerPack:
+                    option.dataset.packId,
+                selectedStickerId:
+                    option.dataset.stickerId,
+                highlightEnabled: false,
+                noteEnabled: false
+            });
+        }
+    );
+
+    highlighterMenu.addEventListener(
+        "click",
+        (event) => {
+            const option = event.target.closest(
+                ".adapt-highlight-color-option"
+            );
+
+            if (!option) {
+                return;
+            }
+
+            event.stopPropagation();
+
+            if (option.dataset.locked === "true") {
+                globalThis.ADAPTSettings
+                    ?.openPurchase();
+                return;
+            }
+
+            saveAndApply({
+                highlighterColor:
+                    option.dataset.highlightColor
+            });
+        }
+    );
+
+    noteMenu.addEventListener(
+        "click",
+        (event) => {
+            const option = event.target.closest(
+                ".adapt-note-color-option"
+            );
+
+            if (!option) {
+                return;
+            }
+
+            event.stopPropagation();
+
+            if (option.dataset.locked === "true") {
+                globalThis.ADAPTSettings
+                    ?.openPurchase();
+                return;
+            }
+
+            saveAndApply({
+                noteColor:
+                    option.dataset.noteColor
+            });
         }
     );
 
@@ -471,6 +979,30 @@
                 )
             ) {
                 closeDropdown();
+            }
+
+            if (
+                !event.target.closest(
+                    "#adapt-highlight-control"
+                )
+            ) {
+                closeHighlighterMenu();
+            }
+
+            if (
+                !event.target.closest(
+                    "#adapt-note-control"
+                )
+            ) {
+                closeNoteMenu();
+            }
+
+            if (
+                !event.target.closest(
+                    "#adapt-sticker-control"
+                )
+            ) {
+                closeStickerMenu();
             }
         }
     );
@@ -492,7 +1024,73 @@
             if (!clickedDropdown) {
                 closeDropdown();
             }
+
+            const clickedHighlighterControl =
+                event
+                    .composedPath()
+                    .some(
+                        (element) =>
+                            element instanceof
+                                Element &&
+                            element.id ===
+                                "adapt-highlight-control"
+                    );
+
+            if (!clickedHighlighterControl) {
+                closeHighlighterMenu();
+            }
+
+            const clickedNoteControl =
+                event
+                    .composedPath()
+                    .some(
+                        (element) =>
+                            element instanceof
+                                Element &&
+                            element.id ===
+                                "adapt-note-control"
+                    );
+
+            if (!clickedNoteControl) {
+                closeNoteMenu();
+            }
+
+            const clickedStickerControl =
+                event
+                    .composedPath()
+                    .some(
+                        (element) =>
+                            element instanceof
+                                Element &&
+                            element.id ===
+                                "adapt-sticker-control"
+                    );
+
+            if (!clickedStickerControl) {
+                closeStickerMenu();
+            }
         }
+    );
+
+    document.addEventListener(
+        "click",
+        (event) => {
+            const clickedNoteControl =
+                event
+                    .composedPath()
+                    .some(
+                        (element) =>
+                            element instanceof
+                                Element &&
+                            element.id ===
+                                "adapt-note-control"
+                    );
+
+            if (!clickedNoteControl) {
+                closeNoteMenu();
+            }
+        },
+        true
     );
 
     adaptShadow.addEventListener(
@@ -503,7 +1101,8 @@
 
             if (
                 !button ||
-                button === dropdownButton
+                button === dropdownButton ||
+                !toolbar.contains(button)
             ) {
                 return;
             }
@@ -530,7 +1129,10 @@
                     });
                     break;
 
-                case "adapt-highlight":
+                case "adapt-highlight": {
+                    const nextValue =
+                        !settings.highlightEnabled;
+
                     setButtonActive(
                         "adapt-define",
                         false
@@ -543,10 +1145,21 @@
 
                     saveAndApply({
                         highlightEnabled:
-                            !settings.highlightEnabled,
-                        noteEnabled: false
+                            nextValue,
+                        noteEnabled: false,
+                        stickerEnabled: false
                     });
+
+                    closeNoteMenu();
+                    closeStickerMenu();
+
+                    if (nextValue) {
+                        openHighlighterMenu();
+                    } else {
+                        closeHighlighterMenu();
+                    }
                     break;
+                }
 
                 case "adapt-line-guide":
                     setButtonActive(
@@ -565,7 +1178,10 @@
                     });
                     break;
 
-                case "adapt-note":
+                case "adapt-note": {
+                    const nextValue =
+                        !settings.noteEnabled;
+
                     setButtonActive(
                         "adapt-define",
                         false
@@ -578,10 +1194,41 @@
 
                     saveAndApply({
                         noteEnabled:
-                            !settings.noteEnabled,
-                        highlightEnabled: false
+                            nextValue,
+                        highlightEnabled: false,
+                        stickerEnabled: false
                     });
+
+                    closeHighlighterMenu();
+                    closeStickerMenu();
+
+                    if (nextValue) {
+                        openNoteMenu();
+                    } else {
+                        closeNoteMenu();
+                    }
                     break;
+                }
+
+                case "adapt-sticker": {
+                    if (!settings.premiumUnlocked) {
+                        globalThis.ADAPTSettings
+                            ?.openPurchase();
+                        break;
+                    }
+
+                    const isOpen =
+                        stickerMenu.style.display ===
+                        "block";
+
+                    stickerMenu.style.display =
+                        isOpen ? "none" : "block";
+                    stickerButton.setAttribute(
+                        "aria-expanded",
+                        String(!isOpen)
+                    );
+                    break;
+                }
 
                 case "adapt-define": {
                     const nextValue =
@@ -607,7 +1254,8 @@
                         saveAndApply({
                             highlightEnabled: false,
                             lineGuideEnabled: false,
-                            noteEnabled: false
+                            noteEnabled: false,
+                            stickerEnabled: false
                         });
                     } else {
                         globalThis.ADAPTDefine?.toggle(
@@ -642,7 +1290,8 @@
                         saveAndApply({
                             highlightEnabled: false,
                             lineGuideEnabled: false,
-                            noteEnabled: false
+                            noteEnabled: false,
+                            stickerEnabled: false
                         });
                     } else {
                         globalThis.ADAPTSpeak?.toggle(
@@ -681,6 +1330,10 @@
                     saveAndApply({
                         toolbarHidden: true
                     });
+                    break;
+
+                case "adapt-settings":
+                    globalThis.ADAPTSettings?.open();
                     break;
 
                 default:
@@ -852,6 +1505,9 @@
 
     async function loadSavedState() {
         try {
+            await globalThis.ADAPTStickerPallet
+                ?.load?.();
+
             settings =
                 await globalThis.ADAPTStorage.loadGlobal();
 
@@ -866,6 +1522,10 @@
 
             globalThis.ADAPTNote?.restore(
                 savedPage.notes
+            );
+
+            globalThis.ADAPTSticker?.restore(
+                savedPage.stickers
             );
 
             globalThis.ADAPTStorage.subscribeGlobal(
