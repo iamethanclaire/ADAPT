@@ -3,7 +3,7 @@
     "use strict";
 
     const CATALOG_FILE = "stickerPallet.json";
-    const STICKER_DIRECTORY = "stickers";
+    const STICKER_DIRECTORY = "../images/stickers";
     const SAFE_ID = /^[a-z0-9][a-z0-9-]*$/;
     const SAFE_WEBP_FILE =
         /^[a-z0-9][a-z0-9._-]*\.webp$/i;

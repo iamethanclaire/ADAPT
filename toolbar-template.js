@@ -152,12 +152,10 @@ function getToolbarHTML(logoSrc) {
                 style="
                     display: none;
                     position: absolute;
-                    top: calc(100% + 6px);
-                    left: 50%;
-                    transform: translateX(-50%);
+                    top: 100%;
+                    left: 0%;
                     width: max-content;
                     padding: 8px;
-                    border: 1px solid var(--adapt-toolbar-border);
                     border-radius: 8px;
                     background: var(--adapt-toolbar-menu);
                     box-shadow: 0 2px 8px ${ADAPT.colors.shadowLight};
@@ -203,12 +201,10 @@ function getToolbarHTML(logoSrc) {
                 style="
                     display: none;
                     position: absolute;
-                    top: calc(100% + 6px);
-                    left: 50%;
-                    transform: translateX(-50%);
+                    top: 100%;
+                    left: 0%;
                     width: max-content;
                     padding: 8px;
-                    border: 1px solid var(--adapt-toolbar-border);
                     border-radius: 8px;
                     background: var(--adapt-toolbar-menu);
                     box-shadow: 0 2px 8px ${ADAPT.colors.shadowLight};
@@ -243,12 +239,10 @@ function getToolbarHTML(logoSrc) {
                 style="
                     display: none;
                     position: absolute;
-                    top: calc(100% + 6px);
-                    left: 50%;
-                    transform: translateX(-50%);
+                    top: 100%;
+                    left: 0%;
                     width: max-content;
                     padding: 8px;
-                    border: 1px solid var(--adapt-toolbar-border);
                     border-radius: 8px;
                     background: var(--adapt-toolbar-menu);
                     box-shadow: 0 2px 8px ${ADAPT.colors.shadowLight};

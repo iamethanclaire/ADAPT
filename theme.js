@@ -64,10 +64,6 @@ var ADAPT = {
         blue300: "#9dc8db",
         blue500: "#83a8d4",
         blue700: "#2874a6",
-        blueSelectedLight: "#9fd7f5",
-        blueSelectedDark: "#007acc",
-        blueSelectedHoverLight: "#95c9e6",
-        blueSelectedHoverDark: "#006fba",
 
         green050: "#cff7f2",
         green200: "#9bd9d0",
@@ -80,11 +76,6 @@ var ADAPT = {
         olive500: "#62654a",
         olive700: "#485639",
         olive900: "#40300b",
-
-        alterationLight: "rgb(250, 113, 106)",
-        alterationDark: "#cc0000",
-        alterationHoverLight: "#ee655e",
-        alterationHoverDark: "#ba0000",
 
         toolbarLightHover: "#efefef",
         toolbarDarkHover: "#363636",
@@ -153,40 +144,10 @@ var ADAPT = {
             : this.colors.toolbarLightHover;
     },
 
-    get hoverSelectedToolColor() {
-        return this.prefersDark
-            ? this.colors.blueSelectedHoverDark
-            : this.colors.blueSelectedHoverLight;
-    },
-
-    get hoverSelectedAlterationColor() {
-        return this.prefersDark
-            ? this.colors.alterationHoverDark
-            : this.colors.alterationHoverLight;
-    },
-
     get menuColor() {
         return this.prefersDark
             ? this.colors.darkSurface
             : this.colors.white;
-    },
-
-    get selectedToolColor() {
-        return this.prefersDark
-            ? this.colors.blueSelectedDark
-            : this.colors.blueSelectedLight;
-    },
-
-    get selectedAlterationColor() {
-        return this.prefersDark
-            ? this.colors.alterationDark
-            : this.colors.alterationLight;
-    },
-
-    get selectedInputBorderColor() {
-        return this.prefersDark
-            ? this.colors.white
-            : this.colors.darkSurface;
     },
 
     get lineColor() {
@@ -197,7 +158,9 @@ var ADAPT = {
 
     toolbarThemes: Object.freeze({
         system: {
-            label: "System Default"
+            label: "System Default",
+            selectedAlterationColor: "#cc0000",
+            selectedToolColor: "#007acc"
         },
         white: {
             label: "Default White",
@@ -206,7 +169,9 @@ var ADAPT = {
             text: "#000000",
             border: "#cccccc",
             hover: "#efefef",
-            menu: "#ffffff"
+            menu: "#ffffff",
+            selectedAlterationColor: "#e62727",
+            selectedToolColor: "#319fe9"
         },
         black: {
             label: "Default Black",
@@ -215,7 +180,9 @@ var ADAPT = {
             text: "#ffffff",
             border: "#444444",
             hover: "#363636",
-            menu: "#1e1e1e"
+            menu: "#1e1e1e",
+            selectedAlterationColor: "#cc0000",
+            selectedToolColor: "#007acc"
         },
         red: {
             label: "Red",
@@ -224,7 +191,9 @@ var ADAPT = {
             text: "#0e0c0c",
             border: "#b20000",
             hover: "#f85454",
-            menu: "#ff8a89"
+            menu: "#ff8a89",
+            selectedAlterationColor: "#f85454",
+            selectedToolColor: "#f85454"
         },
         yellow: {
             label: "Yellow",
@@ -233,16 +202,20 @@ var ADAPT = {
             text: "#0e0c0c",
             border: "#fecb00",
             hover: "#ffda59",
-            menu: "#ffe785"
+            menu: "#ffe785",
+            selectedAlterationColor: "#fecb00",
+            selectedToolColor: "#fecb00"
         },
         orange: {
             label: "Orange",
             background: "#ffc59e",
             input: "#ffc59e",
             text: "#0e0c0c",
-            border: "#d3500d",
+            border: "rgb(223, 84, 15)",
             hover: "#ff9b57",
-            menu: "#ffc59e"
+            menu: "#ffc59e",
+            selectedAlterationColor: "#ff8b3e",
+            selectedToolColor: "#ff8b3e"
         },
         green: {
             label: "Green",
@@ -251,7 +224,9 @@ var ADAPT = {
             text: "#0e0c0c",
             border: "#358d32",
             hover: "#9bd9a1",
-            menu: "#a0f3a1"
+            menu: "#a0f3a1",
+            selectedAlterationColor: "rgb(100, 201, 110)",
+            selectedToolColor: "rgb(100, 201, 110)"
         },
         blue: {
             label: "Blue",
@@ -259,8 +234,10 @@ var ADAPT = {
             input: "#d4f1ff",
             text: "#0e0c0c",
             border: "#2874a6",
-            hover: "#bae3ea",
-            menu: "#d4f1ff"
+            hover: "#a2dbf8",
+            menu: "#d4f1ff",
+            selectedAlterationColor: "#7bbbe7",
+            selectedToolColor: "#7bbbe7"
         },
         purple: {
             label: "Purple",
@@ -269,7 +246,9 @@ var ADAPT = {
             text: "#0e0c0c",
             border: "#7b4384",
             hover: "#a577b8",
-            menu: "#ddaee4"
+            menu: "#ddaee4",
+            selectedAlterationColor: "#d489e0",
+            selectedToolColor: "#d489e0"
         },
         pink: {
             label: "Pink",
@@ -278,7 +257,9 @@ var ADAPT = {
             text: "#0e0c0c",
             border: "#ed408b",
             hover: "#ffa9cb",
-            menu: "#ffc1db"
+            menu: "#ffc1db",
+            selectedAlterationColor: "#ed99bd",
+            selectedToolColor: "#ed99bd"
         },
         "light-coffee-brown": {
             label: "Light Coffee Brown",
@@ -287,7 +268,9 @@ var ADAPT = {
             text: "#0e0c0c",
             border: "#80594e",
             hover: "#aa7b6f",
-            menu: "#c3a296"
+            menu: "#c3a296",
+            selectedAlterationColor: "#ae7865",
+            selectedToolColor: "#ae7865"
         }
     }),
 
@@ -297,37 +280,17 @@ var ADAPT = {
             this.toolbarThemes.system;
 
         if (themeValue !== "system" && selected.background) {
-            return {
-                ...selected,
-                selectedTool: this.selectedToolColor,
-                selectedToolHover:
-                    this.hoverSelectedToolColor,
-                selectedAlteration:
-                    this.selectedAlterationColor,
-                selectedAlterationHover:
-                    this.hoverSelectedAlterationColor,
-                selectedInputBorder:
-                    this.selectedInputBorderColor
-            };
+            return selected;
         }
 
         return {
-            label: this.toolbarThemes.system.label,
+            ...this.toolbarThemes.system,
             background: this.bgColor,
             input: this.inputColor,
             text: this.textColor,
             border: this.borderColor,
             hover: this.hoverColor,
-            menu: this.menuColor,
-            selectedTool: this.selectedToolColor,
-            selectedToolHover:
-                this.hoverSelectedToolColor,
-            selectedAlteration:
-                this.selectedAlterationColor,
-            selectedAlterationHover:
-                this.hoverSelectedAlterationColor,
-            selectedInputBorder:
-                this.selectedInputBorderColor
+            menu: this.menuColor
         };
     },
 

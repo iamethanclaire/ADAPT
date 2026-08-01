@@ -95,19 +95,12 @@
         "adapt-sticker-lock"
     );
 
-    function getSelectedButtonColor(
-        buttonId,
-        hover = false
-    ) {
+    function getSelectedButtonColor(buttonId) {
         if (alterationButtonIds.has(buttonId)) {
-            return hover
-                ? currentPalette.selectedAlterationHover
-                : currentPalette.selectedAlteration;
+            return currentPalette.selectedAlterationColor;
         }
 
-        return hover
-            ? currentPalette.selectedToolHover
-            : currentPalette.selectedTool;
+        return currentPalette.selectedToolColor;
     }
 
     function renderButton(buttonId) {
@@ -627,6 +620,7 @@
     function renderStickerMenu() {
         const stickerPallet =
             globalThis.ADAPTStickerPallet;
+
         const pack = stickerPallet?.getPalette?.(
             settings.selectedStickerPack
         );
@@ -638,8 +632,11 @@
                     color: ${currentPalette.text};
                     font: 600 11px/1.2 Arial, Helvetica, sans-serif;
                     white-space: nowrap;
-                ">Loading sticker palette…</div>
+                ">
+                    Loading sticker palette…
+                </div>
             `;
+
             return;
         }
 
@@ -649,9 +646,13 @@
                 color: ${currentPalette.text};
                 font: 700 11px/1.2 Arial, Helvetica, sans-serif;
                 white-space: nowrap;
-            ">${pack.name}</div>
+            ">
+                ${pack.name}
+            </div>
+
             <div style="
                 display: flex;
+                align-items: center;
                 gap: 7px;
             ">
                 ${pack.stickers
@@ -669,9 +670,21 @@
                                 aria-label="${sticker.name}"
                                 aria-pressed="${String(selected)}"
                                 style="
+                                    width: 50px;
+                                    height: 50px;
+                                    min-width: 50px;
+                                    min-height: 50px;
+                                    flex: 0 0 50px;
+                                    display: grid;
+                                    place-items: center;
+                                    box-sizing: border-box;
+                                    padding: 4px;
+                                    border: 1px solid ${currentPalette.border};
+                                    border-radius: 8px;
+                                    overflow: hidden;
                                     background: ${
                                         selected
-                                            ? currentPalette.selectedTool
+                                            ? currentPalette.selectedToolColor
                                             : ADAPT.colors.transparent
                                     };
                                 "
@@ -683,6 +696,14 @@
                                         sticker.id
                                     )}"
                                     alt=""
+                                    style="
+                                        display: block;
+                                        width: 40px;
+                                        height: 40px;
+                                        max-width: 40px;
+                                        max-height: 40px;
+                                        object-fit: contain;
+                                    "
                                 >
                             </button>
                         `;
@@ -733,8 +754,7 @@
                     button.style.background =
                         activeButtons.has(button.id)
                             ? getSelectedButtonColor(
-                                  button.id,
-                                  true
+                                  button.id
                               )
                             : currentPalette.hover;
                 }
@@ -779,7 +799,7 @@
                 "focus",
                 () => {
                     input.style.border =
-                        `1px solid ${currentPalette.selectedInputBorder}`;
+                        `1px solid ${currentPalette.text}`;
                 }
             );
 

@@ -26,12 +26,18 @@ function updateLineGuidePosition() {
     }
 
     const maximumY = Math.max(
-        window.innerHeight - lineGuideThickness,
+        0.9 * window.innerHeight,
         0
     );
-    const y = Math.min(
-        Math.max(lineGuideYRatio * window.innerHeight, 0),
-        maximumY
+
+    const minimumY = Math.max(
+        0,
+        0.1 * window.innerHeight
+    );
+
+    const y = Math.max(
+        minimumY, 
+        Math.min(lineGuideYRatio * window.innerHeight, maximumY)
     );
 
     lineGuideElement.style.top = `${y}px`;

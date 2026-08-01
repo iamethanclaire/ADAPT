@@ -7,53 +7,58 @@
         {
           "id": "question",
           "name": "Question",
-          "fileName": "question.webp"
+          "fileName": "question-mark.webp"
         },
         {
-          "id": "important",
-          "name": "Important",
-          "fileName": "important.webp"
+          "id": "exclamation",
+          "name": "Exclamation",
+          "fileName": "exclamation-mark.webp"
         },
         {
           "id": "star",
           "name": "Star",
-          "fileName": "star.webp"
+          "fileName": "star-mark.webp"
         },
         {
           "id": "check",
           "name": "Check",
-          "fileName": "check.webp"
+          "fileName": "check-mark.webp"
         },
         {
-          "id": "idea",
-          "name": "Idea",
-          "fileName": "idea.webp"
+          "id": "x",
+          "name": "X",
+          "fileName": "x-mark.webp"
+        },
+        {
+          "id": "connection",
+          "name": "Connection",
+          "fileName": "connection-mark.webp"
         }
       ]
     },
     {
-      "id": "study",
-      "name": "Study Pack",
+      "id": "peachy",
+      "name": "Peachy Pack",
       "stickers": [
         {
-          "id": "book",
-          "name": "Book",
-          "fileName": "book.webp"
+          "id": "peach",
+          "name": "Peach",
+          "fileName": "peach.webp"
         },
         {
-          "id": "pencil",
-          "name": "Pencil",
-          "fileName": "pencil.webp"
+          "id": "peach-half",
+          "name": "Half Peach",
+          "fileName": "peach-half.webp"
         },
         {
-          "id": "pin",
-          "name": "Pin",
-          "fileName": "pin.webp"
+          "id": "peach-slice",
+          "name": "Peach Slice",
+          "fileName": "peach-slice.webp"
         },
         {
-          "id": "search",
-          "name": "Search",
-          "fileName": "search.webp"
+          "id": "peach-flower",
+          "name": "Peach Flower",
+          "fileName": "peach-flower.webp"
         },
         {
           "id": "brain",

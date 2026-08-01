@@ -11,7 +11,7 @@
     }
 
     const STYLE_ID = "adapt-sticker-styles";
-    const STICKER_SIZE = 48;
+    const STICKER_SIZE = 40;
     const stickers = new Map();
 
     let isEnabled = false;
@@ -56,10 +56,6 @@
                     ${ADAPT.colors.transparent};
                 border: none;
                 border-radius: 8px;
-                filter: drop-shadow(
-                    0 3px 4px
-                    ${ADAPT.colors.shadowMedium}
-                );
                 cursor: default;
                 user-select: none;
                 appearance: none;
