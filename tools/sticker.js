@@ -413,9 +413,12 @@
     function setSelection(packId, stickerId) {
         const stickerPallet =
             globalThis.ADAPTStickerPallet;
-        const pack = stickerPallet?.getPalette?.(
-            packId
-        );
+        const pack = stickerPallet
+            ?.getPalettes?.()
+            .find(
+                (candidate) =>
+                    candidate.id === packId
+            );
 
         if (!pack) {
             return {
@@ -424,9 +427,9 @@
             };
         }
 
-        const sticker = stickerPallet.getSticker(
-            pack.id,
-            stickerId
+        const sticker = pack.stickers.find(
+            (candidate) =>
+                candidate.id === stickerId
         );
 
         if (!sticker) {

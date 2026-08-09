@@ -51,6 +51,9 @@
     };
 
     let isApplyingSettings = false;
+    let globalSettingsWriteQueue = Promise.resolve();
+    let pendingGlobalSettingsPatch = {};
+    let pendingGlobalSettingsWrites = 0;
 
     function getToolbarElement(elementId) {
         return adaptShadow.getElementById(elementId);
@@ -73,24 +76,31 @@
     );
 
     const logo = getToolbarElement("adapt-logo");
+
     const highlighterButton = getToolbarElement(
         "adapt-highlight"
     );
+
     const highlighterMenu = getToolbarElement(
         "adapt-highlight-menu"
     );
+
     const noteButton = getToolbarElement(
         "adapt-note"
     );
+
     const noteMenu = getToolbarElement(
         "adapt-note-menu"
     );
+
     const stickerButton = getToolbarElement(
         "adapt-sticker"
     );
+
     const stickerMenu = getToolbarElement(
         "adapt-sticker-menu"
     );
+
     const stickerLock = getToolbarElement(
         "adapt-sticker-lock"
     );
@@ -284,6 +294,7 @@
             globalThis.ADAPTLayout.applyToolbarPalette(
                 settings.toolbarColor
             );
+
         applyToolbarAppearance();
         refreshFontDropdown();
         renderHighlighterMenu();
@@ -314,11 +325,13 @@
             minimum: settings.minSize,
             maximum: settings.maxSize
         });
+
         configureLeadingControl({
             step: settings.leadingStep,
             minimum: settings.minLeading,
             maximum: settings.maxLeading
         });
+
         configureSpacingControl({
             step: settings.spacingStep,
             minimum: settings.minSpacing,
@@ -360,6 +373,7 @@
             settings.premiumUnlocked
                 ? "none"
                 : "grid";
+
         stickerButton.setAttribute(
             "aria-disabled",
             String(!settings.premiumUnlocked)
@@ -415,15 +429,40 @@
             applyAllSettings();
         }
 
-        try {
-            await globalThis.ADAPTStorage.updateGlobal(
+        pendingGlobalSettingsPatch = {
+            ...pendingGlobalSettingsPatch,
+            ...patch
+        };
+
+        pendingGlobalSettingsWrites += 1;
+
+        const persistPatch = () =>
+            globalThis.ADAPTStorage.updateGlobal(
                 patch
             );
+
+        const pendingWrite =
+            globalSettingsWriteQueue.then(
+                persistPatch,
+                persistPatch
+            );
+
+        globalSettingsWriteQueue =
+            pendingWrite.catch(() => {});
+
+        try {
+            await pendingWrite;
         } catch (error) {
             console.error(
                 "[ADAPT] Could not save toolbar settings:",
                 error
             );
+        } finally {
+            pendingGlobalSettingsWrites -= 1;
+
+            if (pendingGlobalSettingsWrites === 0) {
+                pendingGlobalSettingsPatch = {};
+            }
         }
     }
 
@@ -449,24 +488,32 @@
             .forEach((input) => {
                 input.style.background =
                     currentPalette.input;
+
                 input.style.color =
                     currentPalette.text;
+
                 input.style.border =
                     `1px solid ${currentPalette.border}`;
             });
 
         dropdownMenu.style.background =
             currentPalette.menu;
+
         highlighterMenu.style.background =
             currentPalette.menu;
+
         highlighterMenu.style.borderColor =
             currentPalette.border;
+
         noteMenu.style.background =
             currentPalette.menu;
+
         noteMenu.style.borderColor =
             currentPalette.border;
+
         stickerMenu.style.background =
             currentPalette.menu;
+
         stickerMenu.style.borderColor =
             currentPalette.border;
     }
@@ -479,10 +526,13 @@
             .forEach((item) => {
                 item.style.padding =
                     "8px 12px";
+
                 item.style.cursor =
                     "pointer";
+
                 item.style.color =
                     currentPalette.text;
+
                 item.style.borderBottom =
                     `1px solid ${currentPalette.border}`;
             });
@@ -493,6 +543,7 @@
             ADAPT.getFontDropdownHTML(
                 settings.premiumUnlocked
             );
+
         styleFontDropdownItems();
     }
 
@@ -507,9 +558,11 @@
                         const locked =
                             color.premium &&
                             !settings.premiumUnlocked;
+
                         const selected =
                             color.value.toLowerCase() ===
                             selectedColor;
+
                         const accessibleLabel =
                             locked
                                 ? `${color.label}, locked`
@@ -544,6 +597,7 @@
 
     function openHighlighterMenu() {
         highlighterMenu.style.display = "block";
+
         highlighterButton.setAttribute(
             "aria-expanded",
             "true"
@@ -552,6 +606,7 @@
 
     function closeHighlighterMenu() {
         highlighterMenu.style.display = "none";
+
         highlighterButton.setAttribute(
             "aria-expanded",
             "false"
@@ -566,9 +621,11 @@
                         const locked =
                             color.premium &&
                             !settings.premiumUnlocked;
+
                         const selected =
                             color.id ===
                             settings.noteColor;
+
                         const accessibleLabel =
                             locked
                                 ? `${color.label}, locked`
@@ -603,6 +660,7 @@
 
     function openNoteMenu() {
         noteMenu.style.display = "block";
+
         noteButton.setAttribute(
             "aria-expanded",
             "true"
@@ -611,10 +669,60 @@
 
     function closeNoteMenu() {
         noteMenu.style.display = "none";
+
         noteButton.setAttribute(
             "aria-expanded",
             "false"
         );
+    }
+
+    function getExactStickerSelection(
+        packId,
+        stickerId
+    ) {
+        const stickerPallet =
+            globalThis.ADAPTStickerPallet;
+
+        const pack = stickerPallet
+            ?.getPalettes?.()
+            .find(
+                (candidate) =>
+                    candidate.id === packId
+            );
+
+        const sticker = pack?.stickers.find(
+            (candidate) =>
+                candidate.id === stickerId
+        );
+
+        if (!pack || !sticker) {
+            return null;
+        }
+
+        return {
+            packId: pack.id,
+            stickerId: sticker.id
+        };
+    }
+
+    function getFirstStickerSelection(packId) {
+        const stickerPallet =
+            globalThis.ADAPTStickerPallet;
+
+        const pack = stickerPallet?.getPalette?.(
+            packId
+        );
+
+        const firstSticker = pack?.stickers[0];
+
+        if (!pack || !firstSticker) {
+            return null;
+        }
+
+        return {
+            packId: pack.id,
+            stickerId: firstSticker.id
+        };
     }
 
     function renderStickerMenu() {
@@ -725,6 +833,7 @@
 
     function closeStickerMenu() {
         stickerMenu.style.display = "none";
+
         stickerButton.setAttribute(
             "aria-expanded",
             "false"
@@ -735,16 +844,20 @@
         .querySelectorAll("button")
         .forEach((button) => {
             button.type = "button";
+
             button.style.background =
                 ADAPT.colors.transparent;
+
             button.style.color =
                 currentPalette.text;
+
             button.style.border = "none";
             button.style.padding = "4px 8px";
             button.style.borderRadius = "4px";
             button.style.cursor = "pointer";
             button.style.display = "flex";
             button.style.alignItems = "center";
+
             button.style.justifyContent =
                 "center";
 
@@ -784,6 +897,7 @@
 
             input.style.color =
                 currentPalette.text;
+
             input.style.fontSize = "12px";
 
             input.style.border =
@@ -853,8 +967,10 @@
 
             const font =
                 item.getAttribute("data-value");
+
             const isPremium =
                 item.dataset.premium === "true";
+
             const isUpload =
                 item.dataset.upload === "true";
 
@@ -866,12 +982,14 @@
             ) {
                 globalThis.ADAPTSettings
                     ?.openPurchase();
+
                 return;
             }
 
             if (isUpload) {
                 globalThis.ADAPTSettings
                     ?.chooseFontUpload();
+
                 return;
             }
 
@@ -913,25 +1031,38 @@
                 return;
             }
 
+            event.preventDefault();
             event.stopPropagation();
+
+            const selection =
+                getExactStickerSelection(
+                    option.dataset.packId,
+                    option.dataset.stickerId
+                );
+
+            if (!selection) {
+                return;
+            }
 
             setButtonActive(
                 "adapt-define",
                 false
             );
+
             setButtonActive(
                 "adapt-speak",
                 false
             );
+
             globalThis.ADAPTDefine?.toggle(false);
             globalThis.ADAPTSpeak?.toggle(false);
 
             saveAndApply({
                 stickerEnabled: true,
                 selectedStickerPack:
-                    option.dataset.packId,
+                    selection.packId,
                 selectedStickerId:
-                    option.dataset.stickerId,
+                    selection.stickerId,
                 highlightEnabled: false,
                 noteEnabled: false
             });
@@ -954,6 +1085,7 @@
             if (option.dataset.locked === "true") {
                 globalThis.ADAPTSettings
                     ?.openPurchase();
+
                 return;
             }
 
@@ -980,6 +1112,7 @@
             if (option.dataset.locked === "true") {
                 globalThis.ADAPTSettings
                     ?.openPurchase();
+
                 return;
             }
 
@@ -1178,6 +1311,7 @@
                     } else {
                         closeHighlighterMenu();
                     }
+
                     break;
                 }
 
@@ -1196,6 +1330,7 @@
                         lineGuideEnabled:
                             !settings.lineGuideEnabled
                     });
+
                     break;
 
                 case "adapt-note": {
@@ -1227,6 +1362,7 @@
                     } else {
                         closeNoteMenu();
                     }
+
                     break;
                 }
 
@@ -1234,6 +1370,7 @@
                     if (!settings.premiumUnlocked) {
                         globalThis.ADAPTSettings
                             ?.openPurchase();
+
                         break;
                     }
 
@@ -1241,12 +1378,59 @@
                         stickerMenu.style.display ===
                         "block";
 
+                    const selection =
+                        settings.stickerEnabled
+                            ? getExactStickerSelection(
+                                  settings.selectedStickerPack,
+                                  settings.selectedStickerId
+                              ) ||
+                              getFirstStickerSelection(
+                                  settings.selectedStickerPack
+                              )
+                            : getFirstStickerSelection(
+                                  settings.selectedStickerPack
+                              );
+
+                    if (!selection) {
+                        break;
+                    }
+
+                    setButtonActive(
+                        "adapt-define",
+                        false
+                    );
+
+                    setButtonActive(
+                        "adapt-speak",
+                        false
+                    );
+
+                    globalThis.ADAPTDefine?.toggle(
+                        false
+                    );
+
+                    globalThis.ADAPTSpeak?.toggle(
+                        false
+                    );
+
+                    saveAndApply({
+                        stickerEnabled: true,
+                        selectedStickerPack:
+                            selection.packId,
+                        selectedStickerId:
+                            selection.stickerId,
+                        highlightEnabled: false,
+                        noteEnabled: false
+                    });
+
                     stickerMenu.style.display =
                         isOpen ? "none" : "block";
+
                     stickerButton.setAttribute(
                         "aria-expanded",
                         String(!isOpen)
                     );
+
                     break;
                 }
 
@@ -1550,7 +1734,13 @@
 
             globalThis.ADAPTStorage.subscribeGlobal(
                 (nextSettings) => {
-                    settings = nextSettings;
+                    settings = normalizeLocalConflicts({
+                        ...nextSettings,
+                        ...(pendingGlobalSettingsWrites > 0
+                            ? pendingGlobalSettingsPatch
+                            : {})
+                    });
+
                     applyAllSettings();
                 }
             );
