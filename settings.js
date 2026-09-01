@@ -10,6 +10,8 @@
         "Text displayed with this letter spacing may impact the structure of the webpage and may impact readability.";
     const LEADING_WARNING =
         "Text displayed with this line spacing may impact the structure of the webpage and may impact readability.";
+    const BOLD_SIZE_WARNING =
+        "This bold text size may negatively impact the readability of the screen.";
 
     let overlay = null;
     let panelContent = null;
@@ -387,6 +389,31 @@
                         warning: TYPOGRAPHY_WARNING
                     })}
 
+                    <article class="adapt-settings-card">
+                        <h3>Bold Text Size</h3>
+                        <div class="adapt-settings-number-grid adapt-settings-single-number-grid">
+                            ${numericField(
+                                "adapt-setting-bold-size-increase",
+                                "Increase (%)",
+                                settings.boldSizeIncrease,
+                                1,
+                                50
+                            )}
+                        </div>
+                        <p class="adapt-settings-description">
+                            Enlarges bold text relative to the current text size.
+                        </p>
+                        <p
+                            class="adapt-settings-warning"
+                            ${
+                                settings.boldSizeIncrease < 10 ||
+                                settings.boldSizeIncrease > 25
+                                    ? ""
+                                    : "hidden"
+                            }
+                        >${BOLD_SIZE_WARNING}</p>
+                    </article>
+
                     ${typographyCard({
                         title: "Letter Spacing",
                         stepId: "adapt-setting-spacing-step",
@@ -420,6 +447,25 @@
                             settings.minLeading < 80,
                         warning: LEADING_WARNING
                     })}
+                </div>
+            </section>
+
+            <section class="adapt-settings-section">
+                <div class="adapt-settings-section-heading">
+                    <div>
+                        <p class="adapt-settings-eyebrow">Free settings</p>
+                        <h2>Underline</h2>
+                    </div>
+                </div>
+
+                <div class="adapt-settings-inline-controls">
+                    ${numericField(
+                        "adapt-setting-underline-thickness",
+                        "Underline thickness (px)",
+                        settings.underlineThickness,
+                        1,
+                        10
+                    )}
                 </div>
             </section>
 
@@ -734,6 +780,10 @@
                     repeat(3, minmax(0, 1fr));
                 gap: 8px;
                 margin-top: 12px;
+            }
+
+            .adapt-settings-single-number-grid {
+                grid-template-columns: minmax(0, 1fr);
             }
 
             .adapt-settings-number-field {
@@ -1375,6 +1425,8 @@
             "adapt-setting-size-step": "sizeStep",
             "adapt-setting-min-size": "minSize",
             "adapt-setting-max-size": "maxSize",
+            "adapt-setting-bold-size-increase":
+                "boldSizeIncrease",
             "adapt-setting-spacing-step":
                 "spacingStep",
             "adapt-setting-min-spacing":
@@ -1387,6 +1439,8 @@
                 "minLeading",
             "adapt-setting-max-leading":
                 "maxLeading",
+            "adapt-setting-underline-thickness":
+                "underlineThickness",
             "adapt-setting-line-thickness":
                 "lineGuideThickness"
         };

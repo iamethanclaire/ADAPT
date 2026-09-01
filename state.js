@@ -35,9 +35,13 @@
         spacingStep: 25,
         maxSpacing: 200,
         minSpacing: 50,
+        boldSizeIncrease: 10,
         removeBold: false,
         removeItalics: false,
-        removeUnderline: false,
+        underlineEnabled: false,
+        underlineColor:
+            globalThis.ADAPT.colors.blue500,
+        underlineThickness: 2,
         highlightEnabled: false,
         highlighterColor:
             globalThis.ADAPT.colors.yellowDefault,
@@ -57,6 +61,7 @@
     });
 
     const defaultPageState = Object.freeze({
+        underlines: [],
         highlights: [],
         notes: [],
         stickers: []
@@ -144,6 +149,12 @@
             100,
             defaultGlobalState.minSpacing
         );
+        const boldSizeIncrease = clampNumber(
+            candidate.boldSizeIncrease,
+            1,
+            50,
+            defaultGlobalState.boldSizeIncrease
+        );
 
         const requestedFont =
             typeof adaptTheme?.getFont === "function"
@@ -168,6 +179,20 @@
                 premiumUnlocked)
                 ? requestedHighlighterColor.value
                 : defaultGlobalState.highlighterColor;
+
+        const requestedUnderlineColor =
+            typeof adaptTheme?.getUnderlineColor ===
+            "function"
+                ? adaptTheme.getUnderlineColor(
+                      candidate.underlineColor
+                  )
+                : null;
+        const safeUnderlineColor =
+            requestedUnderlineColor &&
+            (!requestedUnderlineColor.premium ||
+                premiumUnlocked)
+                ? requestedUnderlineColor.value
+                : defaultGlobalState.underlineColor;
 
         const requestedNoteColor =
             typeof adaptTheme?.getNoteColor === "function"
@@ -255,9 +280,17 @@
             spacingStep,
             maxSpacing,
             minSpacing,
+            boldSizeIncrease,
             removeBold: Boolean(candidate.removeBold),
             removeItalics: Boolean(candidate.removeItalics),
-            removeUnderline: Boolean(candidate.removeUnderline),
+            underlineEnabled: Boolean(candidate.underlineEnabled),
+            underlineColor: safeUnderlineColor,
+            underlineThickness: clampNumber(
+                candidate.underlineThickness,
+                1,
+                10,
+                defaultGlobalState.underlineThickness
+            ),
             highlightEnabled: Boolean(candidate.highlightEnabled),
             highlighterColor: safeHighlighterColor,
             lineGuideEnabled: Boolean(candidate.lineGuideEnabled),
@@ -296,13 +329,25 @@
             selectedStickerId: safeStickerId
         };
 
-        if (normalized.highlightEnabled && normalized.noteEnabled) {
+        if (
+            normalized.highlightEnabled &&
+            normalized.underlineEnabled
+        ) {
+            normalized.underlineEnabled = false;
+        }
+
+        if (
+            (normalized.highlightEnabled ||
+                normalized.underlineEnabled) &&
+            normalized.noteEnabled
+        ) {
             normalized.noteEnabled = false;
         }
 
         if (
             normalized.stickerEnabled &&
             (normalized.highlightEnabled ||
+                normalized.underlineEnabled ||
                 normalized.noteEnabled)
         ) {
             normalized.stickerEnabled = false;
@@ -313,6 +358,16 @@
 
     function clonePageState(candidate = {}) {
         return {
+            underlines: Array.isArray(candidate.underlines)
+                ? candidate.underlines
+                      .filter(
+                          (item) =>
+                              item &&
+                              typeof item === "object" &&
+                              !Array.isArray(item)
+                      )
+                      .map((item) => ({ ...item }))
+                : [],
             highlights: Array.isArray(candidate.highlights)
                 ? candidate.highlights
                       .filter(

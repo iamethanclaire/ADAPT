@@ -62,11 +62,36 @@ function getToolbarHTML(logoSrc) {
             </svg>
         </button>
 
-        <button id="adapt-underline">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 18px; height: 18px;">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M17.995 3.744v7.5a6 6 0 1 1-12 0v-7.5m-2.25 16.502h16.5" />
-            </svg>
-        </button>
+        <div id="adapt-underline-control" style="position: relative;">
+            <button
+                id="adapt-underline"
+                aria-label="Underline"
+                aria-haspopup="true"
+                aria-expanded="false"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg"" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 18px; height: 18px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.995 3.744v7.5a6 6 0 1 1-12 0v-7.5m-2.25 16.502h16.5" />
+                </svg>
+            </button>
+
+            <div
+                id="adapt-underline-menu"
+                role="menu"
+                aria-label="Underline colors"
+                style="
+                    display: none;
+                    position: absolute;
+                    top: 100%;
+                    left: 0%;
+                    width: max-content;
+                    padding: 8px;
+                    border-radius: 8px;
+                    background: var(--adapt-toolbar-menu);
+                    box-shadow: 0 2px 8px ${ADAPT.colors.shadowLight};
+                    z-index: 9999999;
+                "
+            ></div>
+        </div>
 
         <div class="adapt-divider" aria-hidden="true"></div>
 

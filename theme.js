@@ -362,6 +362,36 @@ var ADAPT = {
         );
     },
 
+    get underlineColors() {
+        return this.highlighterColors.map((color) =>
+            color.value.toLowerCase() ===
+            this.colors.blue500.toLowerCase()
+                ? {
+                      ...color,
+                      label: "Default Blue",
+                      premium: false
+                  }
+                : { ...color }
+        );
+    },
+
+    getUnderlineColor(value) {
+        const colors = this.underlineColors;
+
+        return (
+            colors.find(
+                (color) =>
+                    color.value.toLowerCase() ===
+                    String(value || "").toLowerCase()
+            ) ||
+            colors.find(
+                (color) =>
+                    color.value.toLowerCase() ===
+                    this.colors.blue500.toLowerCase()
+            )
+        );
+    },
+
     noteColors: [
         {
             id: "yellow",

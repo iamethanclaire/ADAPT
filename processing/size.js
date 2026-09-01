@@ -32,7 +32,16 @@ function configureSizeControl(options = {}) {
 function applySize(newSize, options = {}) {
     size = normalizeSize(newSize);
     sizeInput.value = `${size}%`;
+
+    globalThis.ADAPTBold
+        ?.prepareForTypographyChange?.();
+    globalThis.ADAPTItalics
+        ?.prepareForTypographyChange?.();
+
     globalThis.ADAPTApp?.applyTypography();
+
+    globalThis.ADAPTBold?.refresh?.();
+    globalThis.ADAPTItalics?.refresh?.();
 
     if (options.persist) {
         globalThis.ADAPTApp?.updateGlobalSetting({ size });

@@ -6,8 +6,7 @@
 
     const alterationButtonIds = new Set([
         "adapt-bold",
-        "adapt-italic",
-        "adapt-underline"
+        "adapt-italic"
     ]);
 
     let currentPalette =
@@ -32,7 +31,9 @@
         minSpacing: 50,
         removeBold: false,
         removeItalics: false,
-        removeUnderline: false,
+        underlineEnabled: false,
+        underlineColor: ADAPT.colors.blue500,
+        underlineThickness: 2,
         highlightEnabled: false,
         highlighterColor:
             ADAPT.colors.yellowDefault,
@@ -76,6 +77,14 @@
     );
 
     const logo = getToolbarElement("adapt-logo");
+
+    const underlineButton = getToolbarElement(
+        "adapt-underline"
+    );
+
+    const underlineMenu = getToolbarElement(
+        "adapt-underline-menu"
+    );
 
     const highlighterButton = getToolbarElement(
         "adapt-highlight"
@@ -159,7 +168,7 @@
 
         setButtonActive(
             "adapt-underline",
-            settings.removeUnderline
+            settings.underlineEnabled
         );
 
         setButtonActive(
@@ -226,6 +235,14 @@
     }
 
     function applyToolRuntime() {
+        globalThis.ADAPTUnderline?.setSelectedColor(
+            settings.underlineColor
+        );
+
+        globalThis.ADAPTUnderline?.setThickness(
+            settings.underlineThickness
+        );
+
         globalThis.ADAPTHighlighter?.setSelectedColor(
             settings.highlighterColor
         );
@@ -241,6 +258,11 @@
         globalThis.ADAPTSticker?.setSelection(
             settings.selectedStickerPack,
             settings.selectedStickerId
+        );
+
+        globalThis.ADAPTUnderline?.toggle(
+            settings.isActive &&
+                settings.underlineEnabled
         );
 
         toggleHighlight(
@@ -297,6 +319,7 @@
 
         applyToolbarAppearance();
         refreshFontDropdown();
+        renderUnderlineMenu();
         renderHighlighterMenu();
         renderNoteMenu();
         renderStickerMenu();
@@ -314,10 +337,6 @@
 
         toggleItalics(
             settings.removeItalics
-        );
-
-        toggleUnderline(
-            settings.removeUnderline
         );
 
         configureSizeControl({
@@ -347,6 +366,10 @@
         applyTypography();
         applyToolRuntime();
         syncSavedButtonStates();
+
+        if (!settings.underlineEnabled) {
+            closeUnderlineMenu();
+        }
 
         if (!settings.highlightEnabled) {
             closeHighlighterMenu();
@@ -393,23 +416,40 @@
 
         if (
             normalized.highlightEnabled &&
+            normalized.underlineEnabled
+        ) {
+            normalized.underlineEnabled = false;
+        }
+
+        if (
+            (normalized.highlightEnabled ||
+                normalized.underlineEnabled) &&
             normalized.noteEnabled
         ) {
             normalized.noteEnabled = false;
         }
 
         if (normalized.highlightEnabled) {
+            normalized.underlineEnabled = false;
+            normalized.noteEnabled = false;
+            normalized.stickerEnabled = false;
+        }
+
+        if (normalized.underlineEnabled) {
+            normalized.highlightEnabled = false;
             normalized.noteEnabled = false;
             normalized.stickerEnabled = false;
         }
 
         if (normalized.noteEnabled) {
             normalized.highlightEnabled = false;
+            normalized.underlineEnabled = false;
             normalized.stickerEnabled = false;
         }
 
         if (normalized.stickerEnabled) {
             normalized.highlightEnabled = false;
+            normalized.underlineEnabled = false;
             normalized.noteEnabled = false;
         }
 
@@ -499,6 +539,12 @@
         dropdownMenu.style.background =
             currentPalette.menu;
 
+        underlineMenu.style.background =
+            currentPalette.menu;
+
+        underlineMenu.style.borderColor =
+            currentPalette.border;
+
         highlighterMenu.style.background =
             currentPalette.menu;
 
@@ -545,6 +591,72 @@
             );
 
         styleFontDropdownItems();
+    }
+
+    function renderUnderlineMenu() {
+        const selectedColor =
+            settings.underlineColor.toLowerCase();
+
+        underlineMenu.innerHTML = `
+            <div class="adapt-highlight-palette-grid">
+                ${ADAPT.underlineColors
+                    .map((color) => {
+                        const locked =
+                            color.premium &&
+                            !settings.premiumUnlocked;
+
+                        const selected =
+                            color.value.toLowerCase() ===
+                            selectedColor;
+
+                        const accessibleLabel =
+                            locked
+                                ? `${color.label}, locked`
+                                : color.label;
+
+                        return `
+                            <button
+                                type="button"
+                                class="adapt-highlight-color-option${
+                                    selected
+                                        ? " adapt-highlight-color-selected"
+                                        : ""
+                                }"
+                                data-underline-color="${color.value}"
+                                data-locked="${String(locked)}"
+                                aria-label="${accessibleLabel}"
+                                aria-pressed="${String(selected)}"
+                                style="
+                                    --adapt-highlight-swatch: ${color.value};
+                                "
+                            >${
+                                locked
+                                    ? '<span class="adapt-premium-lock" aria-hidden="true">🔒</span>'
+                                    : ""
+                            }</button>
+                        `;
+                    })
+                    .join("")}
+            </div>
+        `;
+    }
+
+    function openUnderlineMenu() {
+        underlineMenu.style.display = "block";
+
+        underlineButton.setAttribute(
+            "aria-expanded",
+            "true"
+        );
+    }
+
+    function closeUnderlineMenu() {
+        underlineMenu.style.display = "none";
+
+        underlineButton.setAttribute(
+            "aria-expanded",
+            "false"
+        );
     }
 
     function renderHighlighterMenu() {
@@ -1064,7 +1176,35 @@
                 selectedStickerId:
                     selection.stickerId,
                 highlightEnabled: false,
+                underlineEnabled: false,
                 noteEnabled: false
+            });
+        }
+    );
+
+    underlineMenu.addEventListener(
+        "click",
+        (event) => {
+            const option = event.target.closest(
+                ".adapt-highlight-color-option"
+            );
+
+            if (!option) {
+                return;
+            }
+
+            event.stopPropagation();
+
+            if (option.dataset.locked === "true") {
+                globalThis.ADAPTSettings
+                    ?.openPurchase();
+
+                return;
+            }
+
+            saveAndApply({
+                underlineColor:
+                    option.dataset.underlineColor
             });
         }
     );
@@ -1136,6 +1276,14 @@
 
             if (
                 !event.target.closest(
+                    "#adapt-underline-control"
+                )
+            ) {
+                closeUnderlineMenu();
+            }
+
+            if (
+                !event.target.closest(
                     "#adapt-highlight-control"
                 )
             ) {
@@ -1176,6 +1324,21 @@
 
             if (!clickedDropdown) {
                 closeDropdown();
+            }
+
+            const clickedUnderlineControl =
+                event
+                    .composedPath()
+                    .some(
+                        (element) =>
+                            element instanceof
+                                Element &&
+                            element.id ===
+                                "adapt-underline-control"
+                    );
+
+            if (!clickedUnderlineControl) {
+                closeUnderlineMenu();
             }
 
             const clickedHighlighterControl =
@@ -1275,12 +1438,40 @@
                     });
                     break;
 
-                case "adapt-underline":
+                case "adapt-underline": {
+                    const nextValue =
+                        !settings.underlineEnabled;
+
+                    setButtonActive(
+                        "adapt-define",
+                        false
+                    );
+
+                    setButtonActive(
+                        "adapt-speak",
+                        false
+                    );
+
                     saveAndApply({
-                        removeUnderline:
-                            !settings.removeUnderline
+                        underlineEnabled:
+                            nextValue,
+                        highlightEnabled: false,
+                        noteEnabled: false,
+                        stickerEnabled: false
                     });
+
+                    closeHighlighterMenu();
+                    closeNoteMenu();
+                    closeStickerMenu();
+
+                    if (nextValue) {
+                        openUnderlineMenu();
+                    } else {
+                        closeUnderlineMenu();
+                    }
+
                     break;
+                }
 
                 case "adapt-highlight": {
                     const nextValue =
@@ -1299,10 +1490,12 @@
                     saveAndApply({
                         highlightEnabled:
                             nextValue,
+                        underlineEnabled: false,
                         noteEnabled: false,
                         stickerEnabled: false
                     });
 
+                    closeUnderlineMenu();
                     closeNoteMenu();
                     closeStickerMenu();
 
@@ -1351,6 +1544,7 @@
                         noteEnabled:
                             nextValue,
                         highlightEnabled: false,
+                        underlineEnabled: false,
                         stickerEnabled: false
                     });
 
@@ -1420,6 +1614,7 @@
                         selectedStickerId:
                             selection.stickerId,
                         highlightEnabled: false,
+                        underlineEnabled: false,
                         noteEnabled: false
                     });
 
@@ -1457,6 +1652,7 @@
                     if (nextValue) {
                         saveAndApply({
                             highlightEnabled: false,
+                            underlineEnabled: false,
                             lineGuideEnabled: false,
                             noteEnabled: false,
                             stickerEnabled: false
@@ -1493,6 +1689,7 @@
                     if (nextValue) {
                         saveAndApply({
                             highlightEnabled: false,
+                            underlineEnabled: false,
                             lineGuideEnabled: false,
                             noteEnabled: false,
                             stickerEnabled: false
@@ -1719,6 +1916,10 @@
 
             const savedPage =
                 await globalThis.ADAPTStorage.loadPage();
+
+            globalThis.ADAPTUnderline?.restore(
+                savedPage.underlines
+            );
 
             globalThis.ADAPTHighlighter?.restore(
                 savedPage.highlights
