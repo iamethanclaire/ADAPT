@@ -57,7 +57,8 @@
         label,
         value,
         minimum,
-        maximum
+        maximum,
+        locked = false
     ) {
         return `
             <label class="adapt-settings-number-field">
@@ -69,6 +70,7 @@
                     max="${maximum}"
                     step="1"
                     value="${value}"
+                    data-locked="${String(locked)}"
                 >
                 <small>${minimum}–${maximum}</small>
             </label>
@@ -315,6 +317,9 @@
                         aria-pressed="${String(
                             selected
                         )}"
+                        style="--adapt-sticker-card-width: ${
+                            pack.stickers.length * 42 + 44
+                        }px;"
                     >
                         <div class="adapt-sticker-pack-heading">
                             <h3>${escapeHTML(
@@ -566,6 +571,24 @@
                 <p class="adapt-settings-description">
                     Choose the pack that appears when the toolbar sticker button is opened.
                 </p>
+
+                <article class="adapt-settings-card adapt-sticker-size-card">
+                    <div class="adapt-settings-card-heading">
+                        <h3>Sticker Size</h3>
+                        ${lockMarkup(!premiumUnlocked)}
+                    </div>
+                    <div class="adapt-settings-number-grid adapt-settings-single-number-grid">
+                        ${numericField(
+                            "adapt-setting-sticker-size",
+                            "Size (px)",
+                            settings.stickerSize,
+                            10,
+                            100,
+                            !premiumUnlocked
+                        )}
+                    </div>
+                </article>
+
                 <div class="adapt-sticker-pack-grid">
                     ${renderStickerPacks(settings)}
                 </div>
@@ -1033,10 +1056,16 @@
             }
 
             .adapt-sticker-pack-grid {
-                display: grid;
-                grid-template-columns:
-                    repeat(3, minmax(0, 1fr));
+                display: flex;
+                flex-wrap: wrap;
+                align-items: stretch;
                 gap: 12px;
+            }
+
+            .adapt-sticker-size-card {
+                width: min(220px, 100%);
+                box-sizing: border-box;
+                margin: 0 0 12px;
             }
 
             .adapt-settings-selected-pack {
@@ -1045,6 +1074,14 @@
             }
 
             .adapt-sticker-pack-card {
+                min-width: min(
+                    100%,
+                    var(--adapt-sticker-card-width)
+                );
+                flex: 1 1
+                    var(--adapt-sticker-card-width);
+                max-width: 100%;
+                box-sizing: border-box;
                 cursor: pointer;
             }
 
@@ -1064,9 +1101,13 @@
             }
 
             .adapt-sticker-pack-row {
-                display: flex;
+                display: grid;
+                grid-template-columns:
+                    repeat(auto-fit, 36px);
                 align-items: center;
                 gap: 6px;
+                width: 100%;
+                box-sizing: border-box;
                 margin: 12px 0 0;
                 padding: 7px;
                 background:
@@ -1147,9 +1188,13 @@
             }
 
             @media (max-width: 720px) {
-                .adapt-settings-card-grid,
-                .adapt-sticker-pack-grid {
+                .adapt-settings-card-grid {
                     grid-template-columns: 1fr;
+                }
+
+                .adapt-sticker-pack-card {
+                    min-width: 100%;
+                    flex-basis: 100%;
                 }
 
                 .adapt-toolbar-color-grid {
@@ -1211,7 +1256,7 @@
                     <p>Premium adds:</p>
                     <ul>
                         <li>All 25 web-font choices and custom .ttf uploads</li>
-                        <li>The complete highlighter color grid</li>
+                        <li>The complete highlighter and underline color grids</li>
                         <li>Orange, pink, green, and blue sticky notes</li>
                         <li>A custom line-guide color selector</li>
                         <li>Default speech voice selection</li>
@@ -1427,6 +1472,8 @@
             "adapt-setting-max-size": "maxSize",
             "adapt-setting-bold-size-increase":
                 "boldSizeIncrease",
+            "adapt-setting-underline-thickness":
+                "underlineThickness",
             "adapt-setting-spacing-step":
                 "spacingStep",
             "adapt-setting-min-spacing":
@@ -1439,10 +1486,10 @@
                 "minLeading",
             "adapt-setting-max-leading":
                 "maxLeading",
-            "adapt-setting-underline-thickness":
-                "underlineThickness",
             "adapt-setting-line-thickness":
-                "lineGuideThickness"
+                "lineGuideThickness",
+            "adapt-setting-sticker-size":
+                "stickerSize"
         };
 
         if (numberSettings[target.id]) {

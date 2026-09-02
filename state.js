@@ -40,7 +40,7 @@
         removeItalics: false,
         underlineEnabled: false,
         underlineColor:
-            globalThis.ADAPT.colors.blue500,
+            globalThis.ADAPT.colors.focusBlue,
         underlineThickness: 2,
         highlightEnabled: false,
         highlighterColor:
@@ -56,13 +56,14 @@
         speechVoiceURI: "default",
         toolbarColor: "system",
         stickerEnabled: false,
+        stickerSize: 50,
         selectedStickerPack: "text-annotation",
         selectedStickerId: "question"
     });
 
     const defaultPageState = Object.freeze({
-        underlines: [],
         highlights: [],
+        underlines: [],
         notes: [],
         stickers: []
     });
@@ -180,13 +181,25 @@
                 ? requestedHighlighterColor.value
                 : defaultGlobalState.highlighterColor;
 
+        const underlineColors = [
+            {
+                value: adaptTheme?.colors?.focusBlue,
+                premium: false
+            },
+            {
+                value: adaptTheme?.colors?.yellowDefault,
+                premium: true
+            },
+            ...(adaptTheme?.highlighterColors?.slice(1) || [])
+        ];
         const requestedUnderlineColor =
-            typeof adaptTheme?.getUnderlineColor ===
-            "function"
-                ? adaptTheme.getUnderlineColor(
-                      candidate.underlineColor
-                  )
-                : null;
+            underlineColors.find(
+                (color) =>
+                    color.value?.toLowerCase() ===
+                    String(
+                        candidate.underlineColor || ""
+                    ).toLowerCase()
+            ) || null;
         const safeUnderlineColor =
             requestedUnderlineColor &&
             (!requestedUnderlineColor.premium ||
@@ -283,7 +296,9 @@
             boldSizeIncrease,
             removeBold: Boolean(candidate.removeBold),
             removeItalics: Boolean(candidate.removeItalics),
-            underlineEnabled: Boolean(candidate.underlineEnabled),
+            underlineEnabled: Boolean(
+                candidate.underlineEnabled
+            ),
             underlineColor: safeUnderlineColor,
             underlineThickness: clampNumber(
                 candidate.underlineThickness,
@@ -325,9 +340,19 @@
             stickerEnabled:
                 premiumUnlocked &&
                 Boolean(candidate.stickerEnabled),
+            stickerSize: clampNumber(
+                candidate.stickerSize,
+                10,
+                100,
+                defaultGlobalState.stickerSize
+            ),
             selectedStickerPack: safeStickerPack,
             selectedStickerId: safeStickerId
         };
+
+        if (normalized.highlightEnabled && normalized.noteEnabled) {
+            normalized.noteEnabled = false;
+        }
 
         if (
             normalized.highlightEnabled &&
@@ -336,18 +361,14 @@
             normalized.underlineEnabled = false;
         }
 
-        if (
-            (normalized.highlightEnabled ||
-                normalized.underlineEnabled) &&
-            normalized.noteEnabled
-        ) {
+        if (normalized.underlineEnabled) {
             normalized.noteEnabled = false;
+            normalized.stickerEnabled = false;
         }
 
         if (
             normalized.stickerEnabled &&
             (normalized.highlightEnabled ||
-                normalized.underlineEnabled ||
                 normalized.noteEnabled)
         ) {
             normalized.stickerEnabled = false;
@@ -358,8 +379,8 @@
 
     function clonePageState(candidate = {}) {
         return {
-            underlines: Array.isArray(candidate.underlines)
-                ? candidate.underlines
+            highlights: Array.isArray(candidate.highlights)
+                ? candidate.highlights
                       .filter(
                           (item) =>
                               item &&
@@ -368,8 +389,8 @@
                       )
                       .map((item) => ({ ...item }))
                 : [],
-            highlights: Array.isArray(candidate.highlights)
-                ? candidate.highlights
+            underlines: Array.isArray(candidate.underlines)
+                ? candidate.underlines
                       .filter(
                           (item) =>
                               item &&

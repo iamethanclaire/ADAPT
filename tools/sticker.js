@@ -11,7 +11,9 @@
     }
 
     const STYLE_ID = "adapt-sticker-styles";
-    const STICKER_SIZE = 40;
+    const MINIMUM_STICKER_SIZE = 10;
+    const MAXIMUM_STICKER_SIZE = 100;
+    const DEFAULT_STICKER_SIZE = 50;
     const stickers = new Map();
 
     let isEnabled = false;
@@ -22,6 +24,7 @@
     let unsubscribePage = null;
     let selectedPackId = "text-annotation";
     let selectedStickerId = "question";
+    let stickerSize = DEFAULT_STICKER_SIZE;
 
     function injectStyles() {
         if (document.getElementById(STYLE_ID)) {
@@ -45,8 +48,14 @@
 
             .adapt-page-sticker {
                 position: absolute;
-                width: ${STICKER_SIZE}px;
-                height: ${STICKER_SIZE}px;
+                width: var(
+                    --adapt-sticker-size,
+                    ${DEFAULT_STICKER_SIZE}px
+                );
+                height: var(
+                    --adapt-sticker-size,
+                    ${DEFAULT_STICKER_SIZE}px
+                );
                 display: grid;
                 place-items: center;
                 margin: 0;
@@ -60,6 +69,17 @@
                 user-select: none;
                 appearance: none;
                 z-index: 99997;
+            }
+
+            html.adapt-sticker-placement-mode
+                .adapt-page-sticker {
+                cursor: not-allowed !important;
+            }
+
+            html.adapt-sticker-placement-mode
+                .adapt-page-sticker:hover {
+                filter: none;
+                outline-offset: 3px;
             }
 
             .adapt-page-sticker img {
@@ -103,7 +123,7 @@
     }
 
     function positionSticker(sticker) {
-        const halfSticker = STICKER_SIZE / 2;
+        const halfSticker = stickerSize / 2;
         const page = getPageDimensions();
         const x = Math.min(
             Math.max(
@@ -132,6 +152,29 @@
 
     function repositionStickers() {
         stickers.forEach(positionSticker);
+    }
+
+    function setSize(value) {
+        const numericValue = Number(value);
+        const nextSize = Number.isFinite(numericValue)
+            ? Math.round(numericValue)
+            : DEFAULT_STICKER_SIZE;
+
+        stickerSize = Math.min(
+            Math.max(
+                nextSize,
+                MINIMUM_STICKER_SIZE
+            ),
+            MAXIMUM_STICKER_SIZE
+        );
+
+        document.documentElement.style.setProperty(
+            "--adapt-sticker-size",
+            `${stickerSize}px`
+        );
+
+        repositionStickers();
+        return stickerSize;
     }
 
     function scheduleReposition() {
@@ -233,12 +276,6 @@
         image.draggable = false;
         element.appendChild(image);
 
-        element.title = stickerDefinition.name;
-        element.setAttribute(
-            "aria-label",
-            stickerDefinition.name
-        );
-
         const record = {
             id: stickerId,
             xRatio: Math.min(
@@ -256,17 +293,7 @@
         };
 
         stickers.set(stickerId, record);
-
-        if (isShiftPressed) {
-            element.classList.add(
-                "adapt-sticker-delete-mode"
-            );
-            element.title = `Delete ${record.name}`;
-            element.setAttribute(
-                "aria-label",
-                `Delete ${record.name}`
-            );
-        }
+        updateStickerDeletePresentation(record);
 
         element.addEventListener(
             "click",
@@ -275,6 +302,7 @@
                 event.stopPropagation();
 
                 if (
+                    isEnabled ||
                     event.shiftKey ||
                     isShiftPressed
                 ) {
@@ -308,21 +336,29 @@
 
     function updateDeleteMode() {
         stickers.forEach((sticker) => {
-            sticker.element.classList.toggle(
-                "adapt-sticker-delete-mode",
-                isShiftPressed
-            );
-            sticker.element.title =
-                isShiftPressed
-                    ? `Delete ${sticker.name}`
-                    : sticker.name;
-            sticker.element.setAttribute(
-                "aria-label",
-                isShiftPressed
-                    ? `Delete ${sticker.name}`
-                    : sticker.name
+            updateStickerDeletePresentation(
+                sticker
             );
         });
+    }
+
+    function updateStickerDeletePresentation(sticker) {
+        const canDelete =
+            isEnabled || isShiftPressed;
+
+        sticker.element.classList.toggle(
+            "adapt-sticker-delete-mode",
+            isShiftPressed
+        );
+        sticker.element.title = canDelete
+            ? `Delete ${sticker.name}`
+            : sticker.name;
+        sticker.element.setAttribute(
+            "aria-label",
+            canDelete
+                ? `Delete ${sticker.name}`
+                : sticker.name
+        );
     }
 
     function restoreStickers(savedStickers) {
@@ -463,6 +499,8 @@
             isEnabled
         );
 
+        updateDeleteMode();
+
         if (isEnabled) {
             document.addEventListener(
                 "click",
@@ -541,9 +579,14 @@
         document
             .getElementById(STYLE_ID)
             ?.remove();
+
+        document.documentElement.style.removeProperty(
+            "--adapt-sticker-size"
+        );
     }
 
     injectStyles();
+    setSize(DEFAULT_STICKER_SIZE);
     window.addEventListener(
         "resize",
         scheduleReposition
@@ -575,6 +618,7 @@
     globalThis.ADAPTSticker = Object.freeze({
         toggle,
         setSelection,
+        setSize,
         delete: deleteSticker,
         destroy,
         restore: restoreStickers,
@@ -588,6 +632,9 @@
                 packId: selectedPackId,
                 stickerId: selectedStickerId
             };
+        },
+        getSize() {
+            return stickerSize;
         },
         getStickers() {
             return serializeStickers();
