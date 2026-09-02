@@ -6,7 +6,8 @@
 
     const alterationButtonIds = new Set([
         "adapt-bold",
-        "adapt-italic"
+        "adapt-italic",
+        "adapt-justify"
     ]);
 
     let currentPalette =
@@ -31,6 +32,7 @@
         minSpacing: 50,
         removeBold: false,
         removeItalics: false,
+        justifyEnabled: false,
         underlineEnabled: false,
         underlineColor:
             ADAPT.colors.focusBlue,
@@ -169,6 +171,11 @@
         );
 
         setButtonActive(
+            "adapt-justify",
+            settings.justifyEnabled
+        );
+
+        setButtonActive(
             "adapt-underline",
             settings.underlineEnabled
         );
@@ -274,6 +281,11 @@
         globalThis.ADAPTUnderline?.toggle(
             settings.isActive &&
                 settings.underlineEnabled
+        );
+
+        globalThis.ADAPTJustify?.toggle(
+            settings.isActive &&
+                settings.justifyEnabled
         );
 
         globalThis.ADAPTNote?.toggle(
@@ -1447,6 +1459,13 @@
                     saveAndApply({
                         removeItalics:
                             !settings.removeItalics
+                    });
+                    break;
+
+                case "adapt-justify":
+                    saveAndApply({
+                        justifyEnabled:
+                            !settings.justifyEnabled
                     });
                     break;
 

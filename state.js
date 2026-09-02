@@ -38,6 +38,7 @@
         boldSizeIncrease: 10,
         removeBold: false,
         removeItalics: false,
+        justifyEnabled: false,
         underlineEnabled: false,
         underlineColor:
             globalThis.ADAPT.colors.focusBlue,
@@ -296,6 +297,9 @@
             boldSizeIncrease,
             removeBold: Boolean(candidate.removeBold),
             removeItalics: Boolean(candidate.removeItalics),
+            justifyEnabled: Boolean(
+                candidate.justifyEnabled
+            ),
             underlineEnabled: Boolean(
                 candidate.underlineEnabled
             ),

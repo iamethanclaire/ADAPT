@@ -42,6 +42,7 @@
         "processing/spacing.js",
         "processing/bold.js",
         "processing/italics.js",
+        "processing/justify.js",
         "processing/underline.js",
         "tools/lineguide.js",
         "tools/highlighter.js",
