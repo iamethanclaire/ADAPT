@@ -362,33 +362,36 @@ var ADAPT = {
         );
     },
 
+    getUnderlineColors() {
+        return [
+            {
+                label: "Default Blue",
+                value: this.colors.focusBlue,
+                premium: false
+            },
+            {
+                label: "Yellow",
+                value: this.colors.yellowDefault,
+                premium: true
+            },
+            ...this.highlighterColors.slice(1)
+        ];
+    },
+
     get underlineColors() {
-        return this.highlighterColors.map((color) =>
-            color.value.toLowerCase() ===
-            this.colors.blue500.toLowerCase()
-                ? {
-                      ...color,
-                      label: "Default Blue",
-                      premium: false
-                  }
-                : { ...color }
-        );
+        return this.getUnderlineColors();
     },
 
     getUnderlineColor(value) {
-        const colors = this.underlineColors;
+        const underlineColors =
+            this.getUnderlineColors();
 
         return (
-            colors.find(
+            underlineColors.find(
                 (color) =>
                     color.value.toLowerCase() ===
                     String(value || "").toLowerCase()
-            ) ||
-            colors.find(
-                (color) =>
-                    color.value.toLowerCase() ===
-                    this.colors.blue500.toLowerCase()
-            )
+            ) || underlineColors[0]
         );
     },
 
@@ -461,23 +464,16 @@ var ADAPT = {
             premium: false
         },
         {
+            label: "Add New Font",
+            value: "add-new-font",
+            family: "inherit",
+            premium: true,
+            upload: true
+        },
+        {
             label: "Arial",
             value: "arial",
             family: "Arial, sans-serif",
-            premium: false
-        },
-        {
-            label: "Verdana",
-            value: "verdana",
-            family: "Verdana, sans-serif",
-            url: chrome.runtime.getURL("fonts/Verdana.woff2"),
-            premium: false
-        },
-        {
-            label: "Helvetica",
-            value: "helvetica",
-            family: "Helvetica, sans-serif",
-            url: chrome.runtime.getURL("fonts/Helvetica.woff2"),
             premium: false
         },
         {
@@ -488,39 +484,15 @@ var ADAPT = {
             premium: false
         },
         {
-            label: "Helvetica Neue",
-            value: "helvetica-neue",
-            family: '"Helvetica Neue", Helvetica, sans-serif',
+            label: "Consolas",
+            value: "consolas",
+            family: "Consolas, monospace",
             premium: true
         },
         {
-            label: "Sans-serif",
-            value: "sans-serif",
-            family: "sans-serif",
-            premium: true
-        },
-        {
-            label: "Monospace",
-            value: "monospace",
-            family: "monospace",
-            premium: true
-        },
-        {
-            label: "Open Sans",
-            value: "open-sans",
-            family: '"Open Sans", Arial, sans-serif',
-            premium: true
-        },
-        {
-            label: "Georgia",
-            value: "georgia",
-            family: "Georgia, serif",
-            premium: true
-        },
-        {
-            label: "Tahoma",
-            value: "tahoma",
-            family: "Tahoma, sans-serif",
+            label: "Courier New",
+            value: "courier-new",
+            family: '"Courier New", monospace',
             premium: true
         },
         {
@@ -530,21 +502,46 @@ var ADAPT = {
             premium: true
         },
         {
-            label: "Serif",
-            value: "serif",
-            family: "serif",
+            label: "Genericons",
+            value: "genericons",
+            family: "Genericons, sans-serif",
             premium: true
         },
         {
-            label: "Trebuchet MS",
-            value: "trebuchet-ms",
-            family: '"Trebuchet MS", sans-serif',
+            label: "Georgia",
+            value: "georgia",
+            family: "Georgia, serif",
             premium: true
         },
         {
             label: "Glyphicons Halflings",
             value: "glyphicons-halflings",
             family: '"Glyphicons Halflings", sans-serif',
+            premium: true
+        },
+        {
+            label: "Helvetica",
+            value: "helvetica",
+            family: "Helvetica, sans-serif",
+            url: chrome.runtime.getURL("fonts/Helvetica.woff2"),
+            premium: false
+        },
+        {
+            label: "Helvetica Neue",
+            value: "helvetica-neue",
+            family: '"Helvetica Neue", Helvetica, sans-serif',
+            premium: true
+        },
+        {
+            label: "Lato",
+            value: "lato",
+            family: "Lato, sans-serif",
+            premium: true
+        },
+        {
+            label: "Lucida Grande",
+            value: "lucida-grande",
+            family: '"Lucida Grande", sans-serif',
             premium: true
         },
         {
@@ -560,51 +557,21 @@ var ADAPT = {
             premium: true
         },
         {
-            label: "Lucida Grande",
-            value: "lucida-grande",
-            family: '"Lucida Grande", sans-serif',
+            label: "Monospace",
+            value: "monospace",
+            family: "monospace",
             premium: true
         },
         {
-            label: "Lato",
-            value: "lato",
-            family: "Lato, sans-serif",
-            premium: true
-        },
-        {
-            label: "Roboto",
-            value: "roboto",
-            family: "Roboto, sans-serif",
-            premium: true
-        },
-        {
-            label: "Courier New",
-            value: "courier-new",
-            family: '"Courier New", monospace',
-            premium: true
-        },
-        {
-            label: "Consolas",
-            value: "consolas",
-            family: "Consolas, monospace",
-            premium: true
-        },
-        {
-            label: "Genericons",
-            value: "genericons",
-            family: "Genericons, sans-serif",
+            label: "Open Sans",
+            value: "open-sans",
+            family: '"Open Sans", Arial, sans-serif',
             premium: true
         },
         {
             label: "Oswald",
             value: "oswald",
             family: "Oswald, sans-serif",
-            premium: true
-        },
-        {
-            label: "Times New Roman",
-            value: "times-new-roman",
-            family: '"Times New Roman", serif',
             premium: true
         },
         {
@@ -620,18 +587,130 @@ var ADAPT = {
             premium: true
         },
         {
-            label: "Upload Font",
-            value: "uploadFont",
-            family: '"ADAPT Uploaded Font", sans-serif',
-            premium: true,
-            upload: true
+            label: "Roboto",
+            value: "roboto",
+            family: "Roboto, sans-serif",
+            premium: true
+        },
+        {
+            label: "Sans-serif",
+            value: "sans-serif",
+            family: "sans-serif",
+            premium: true
+        },
+        {
+            label: "Serif",
+            value: "serif",
+            family: "serif",
+            premium: true
+        },
+        {
+            label: "Tahoma",
+            value: "tahoma",
+            family: "Tahoma, sans-serif",
+            premium: true
+        },
+        {
+            label: "Times New Roman",
+            value: "times-new-roman",
+            family: '"Times New Roman", serif',
+            premium: true
+        },
+        {
+            label: "Trebuchet MS",
+            value: "trebuchet-ms",
+            family: '"Trebuchet MS", sans-serif',
+            premium: true
+        },
+        {
+            label: "Verdana",
+            value: "verdana",
+            family: "Verdana, sans-serif",
+            url: chrome.runtime.getURL("fonts/Verdana.woff2"),
+            premium: false
         }
     ],
+
+    sortFonts() {
+        const pageDefault = this.fonts.filter(
+            (font) => font.value === "page-default"
+        );
+        const uploadActions = this.fonts.filter(
+            (font) => font.upload
+        );
+        const selectableFonts = this.fonts
+            .filter(
+                (font) =>
+                    !font.upload &&
+                    font.value !== "page-default"
+            )
+            .sort((left, right) =>
+                left.label.localeCompare(
+                    right.label,
+                    undefined,
+                    {
+                        sensitivity: "base",
+                        numeric: true
+                    }
+                )
+            );
+
+        this.fonts.splice(
+            0,
+            this.fonts.length,
+            ...pageDefault,
+            ...uploadActions,
+            ...selectableFonts
+        );
+
+        return this.fonts;
+    },
+
+    registerUploadedFont(font) {
+        if (
+            !font?.uploaded ||
+            typeof font.value !== "string" ||
+            typeof font.label !== "string"
+        ) {
+            return null;
+        }
+
+        const existingIndex = this.fonts.findIndex(
+            (candidate) =>
+                candidate.uploaded &&
+                candidate.value === font.value
+        );
+
+        if (existingIndex >= 0) {
+            this.fonts.splice(existingIndex, 1, font);
+        } else {
+            this.fonts.push(font);
+        }
+
+        this.sortFonts();
+        return font;
+    },
+
+    unregisterUploadedFont(fontValue) {
+        const existingIndex = this.fonts.findIndex(
+            (font) =>
+                font.uploaded &&
+                font.value === fontValue
+        );
+
+        if (existingIndex >= 0) {
+            this.fonts.splice(existingIndex, 1);
+        }
+
+        this.sortFonts();
+    },
 
     getFont(fontValue) {
         return (
             this.fonts.find(
-                (font) => font.value === fontValue
+                (font) =>
+                    !font.upload &&
+                    font.value === fontValue
             ) ||
             this.fonts.find(
                 (font) => font.value === "page-default"
@@ -640,10 +719,20 @@ var ADAPT = {
     },
 
     getFontDropdownHTML(premiumUnlocked = false) {
-        return this.fonts
+        const escapeHTML = (value) =>
+            String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+
+        return this.sortFonts()
             .map((font) => {
                 const locked =
                     font.premium && !premiumUnlocked;
+                const safeValue = escapeHTML(font.value);
+                const safeLabel = escapeHTML(font.label);
                 const lockMarkup = locked
                     ? '<span class="adapt-premium-lock" aria-hidden="true">🔒</span>'
                     : "";
@@ -653,13 +742,13 @@ var ADAPT = {
                         class="adapt-dropdown-item${
                             locked ? " adapt-locked-option" : ""
                         }"
-                        data-value="${font.value}"
+                        data-value="${safeValue}"
                         data-premium="${String(Boolean(font.premium))}"
                         data-upload="${String(Boolean(font.upload))}"
                         role="option"
                         aria-disabled="${String(locked)}"
                     >
-                        <span>${font.label}</span>
+                        <span class="adapt-font-option-label">${safeLabel}</span>
                         ${lockMarkup}
                     </div>
                 `;
@@ -687,7 +776,8 @@ var ADAPT = {
             .filter(
                 (font) =>
                     font.value !== "page-default" &&
-                    !font.upload
+                    !font.upload &&
+                    !font.uploaded
             )
             .map(
                 (font) => `

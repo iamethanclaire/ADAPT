@@ -231,26 +231,31 @@
             safeFont
         );
 
-        dropdownLabel.textContent =
-            safeFont.upload &&
-            globalThis.ADAPTFont?.getUploadedFontName?.()
-                ? globalThis.ADAPTFont.getUploadedFontName()
-                : safeFont.label;
+        dropdownLabel.textContent = safeFont.label;
 
-        dropdownLabel.style.fontFamily =
-            safeFont.value === "page-default"
-                ? "inherit"
-                : safeFont.family;
+        if (safeFont.value === "page-default") {
+            dropdownLabel.style.removeProperty(
+                "font-family"
+            );
+        } else {
+            dropdownLabel.style.setProperty(
+                "font-family",
+                safeFont.family,
+                "important"
+            );
+        }
     }
 
     function applyToolRuntime() {
-        globalThis.ADAPTHighlighter?.setSelectedColor(
-            settings.highlighterColor
-        );
+        globalThis.ADAPTHighlighter
+            ?.setSelectedColor(
+                settings.highlighterColor
+            );
 
-        globalThis.ADAPTUnderline?.setSelectedColor(
-            settings.underlineColor
-        );
+        globalThis.ADAPTUnderline
+            ?.setSelectedColor(
+                settings.underlineColor
+            );
 
         globalThis.ADAPTUnderline?.setThickness(
             settings.underlineThickness
@@ -331,9 +336,10 @@
         isApplyingSettings = true;
 
         currentPalette =
-            globalThis.ADAPTLayout.applyToolbarPalette(
-                settings.toolbarColor
-            );
+            globalThis.ADAPTLayout
+                .applyToolbarPalette(
+                    settings.toolbarColor
+                );
 
         applyToolbarAppearance();
         refreshFontDropdown();
@@ -510,7 +516,9 @@
         } finally {
             pendingGlobalSettingsWrites -= 1;
 
-            if (pendingGlobalSettingsWrites === 0) {
+            if (
+                pendingGlobalSettingsWrites === 0
+            ) {
                 pendingGlobalSettingsPatch = {};
             }
         }
@@ -580,17 +588,57 @@
                 ".adapt-dropdown-item"
             )
             .forEach((item) => {
-                item.style.padding =
-                    "8px 12px";
+                const font = ADAPT.fonts.find(
+                    (candidate) =>
+                        candidate.value ===
+                        item.dataset.value
+                );
 
-                item.style.cursor =
-                    "pointer";
-
+                item.style.padding = "8px 12px";
+                item.style.cursor = "pointer";
                 item.style.color =
                     currentPalette.text;
 
                 item.style.borderBottom =
                     `1px solid ${currentPalette.border}`;
+
+                if (font && !font.upload) {
+                    const fontTargets = [
+                        item,
+                        item.querySelector(
+                            ".adapt-font-option-label"
+                        )
+                    ].filter(Boolean);
+
+                    fontTargets.forEach(
+                        (target) => {
+                            target.style.setProperty(
+                                "font-family",
+                                font.value ===
+                                    "page-default"
+                                    ? "Arial, Helvetica, sans-serif"
+                                    : font.family,
+                                "important"
+                            );
+
+                            target.style.setProperty(
+                                "font-style",
+                                "normal",
+                                "important"
+                            );
+
+                            target.style.setProperty(
+                                "font-weight",
+                                "400",
+                                "important"
+                            );
+                        }
+                    );
+                } else {
+                    item.style.removeProperty(
+                        "font-family"
+                    );
+                }
             });
     }
 
@@ -601,6 +649,12 @@
             );
 
         styleFontDropdownItems();
+
+        Promise.resolve(
+            document.fonts?.ready
+        ).then(() => {
+            styleFontDropdownItems();
+        });
     }
 
     function renderHighlighterMenu() {
@@ -1219,7 +1273,9 @@
 
             event.stopPropagation();
 
-            if (option.dataset.locked === "true") {
+            if (
+                option.dataset.locked === "true"
+            ) {
                 globalThis.ADAPTSettings
                     ?.openPurchase();
 
@@ -1246,7 +1302,9 @@
 
             event.stopPropagation();
 
-            if (option.dataset.locked === "true") {
+            if (
+                option.dataset.locked === "true"
+            ) {
                 globalThis.ADAPTSettings
                     ?.openPurchase();
 
@@ -1273,7 +1331,9 @@
 
             event.stopPropagation();
 
-            if (option.dataset.locked === "true") {
+            if (
+                option.dataset.locked === "true"
+            ) {
                 globalThis.ADAPTSettings
                     ?.openPurchase();
 
@@ -1654,7 +1714,8 @@
                         noteEnabled: false
                     });
 
-                    stickerMenu.style.display = "block";
+                    stickerMenu.style.display =
+                        "block";
 
                     stickerButton.setAttribute(
                         "aria-expanded",
@@ -1868,9 +1929,7 @@
                 if (key === "E") {
                     event.preventDefault();
 
-                    if (
-                        settings.toolbarHidden
-                    ) {
+                    if (settings.toolbarHidden) {
                         tab.click();
                     } else {
                         getToolbarElement(
@@ -1888,8 +1947,7 @@
                     event.preventDefault();
 
                     if (
-                        buttonId ===
-                        "adapt-logo"
+                        buttonId === "adapt-logo"
                     ) {
                         logo.click();
                     } else {
@@ -1939,18 +1997,30 @@
         updateGlobalSetting
     });
 
+    window.addEventListener(
+        "adapt-fonts-changed",
+        () => {
+            refreshFontDropdown();
+            applyFontSetting();
+        }
+    );
+
     async function loadSavedState() {
         try {
+            await globalThis.ADAPTFont?.ready;
+
             await globalThis.ADAPTStickerPallet
                 ?.load?.();
 
             settings =
-                await globalThis.ADAPTStorage.loadGlobal();
+                await globalThis.ADAPTStorage
+                    .loadGlobal();
 
             applyAllSettings();
 
             const savedPage =
-                await globalThis.ADAPTStorage.loadPage();
+                await globalThis.ADAPTStorage
+                    .loadPage();
 
             globalThis.ADAPTHighlighter?.restore(
                 savedPage.highlights
@@ -1970,12 +2040,14 @@
 
             globalThis.ADAPTStorage.subscribeGlobal(
                 (nextSettings) => {
-                    settings = normalizeLocalConflicts({
-                        ...nextSettings,
-                        ...(pendingGlobalSettingsWrites > 0
-                            ? pendingGlobalSettingsPatch
-                            : {})
-                    });
+                    settings =
+                        normalizeLocalConflicts({
+                            ...nextSettings,
+                            ...(pendingGlobalSettingsWrites >
+                            0
+                                ? pendingGlobalSettingsPatch
+                                : {})
+                        });
 
                     applyAllSettings();
                 }

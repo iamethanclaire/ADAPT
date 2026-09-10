@@ -2,8 +2,6 @@
 (function initializeADAPTSettings() {
     "use strict";
 
-    const UPLOADED_FONT_KEY =
-        "adaptUploadedFontV1";
     const TYPOGRAPHY_WARNING =
         "Text displayed at this size may impact the structure of the webpage and may impact readability.";
     const SPACING_WARNING =
@@ -17,7 +15,7 @@
     let panelContent = null;
     let purchaseOverlay = null;
     let uploadInput = null;
-    let statusMessage = "";
+    let fontStatus = null;
 
     function getSettings() {
         return globalThis.ADAPTStorage?.getGlobal?.() || {};
@@ -125,6 +123,7 @@
                 const locked =
                     color.premium &&
                     !settings.premiumUnlocked;
+
                 const selected =
                     color.value.toLowerCase() ===
                     String(
@@ -160,6 +159,7 @@
                 const locked =
                     color.premium &&
                     !settings.premiumUnlocked;
+
                 const selected =
                     color.id === settings.noteColor;
 
@@ -231,6 +231,7 @@
             .map(([value, theme]) => {
                 const palette =
                     ADAPT.getToolbarPalette(value);
+
                 const selected =
                     value === settings.toolbarColor;
 
@@ -269,6 +270,7 @@
     function renderStickerPacks(settings) {
         const stickerPallet =
             globalThis.ADAPTStickerPallet;
+
         const palettes =
             stickerPallet?.getPalettes?.() || [];
 
@@ -293,6 +295,7 @@
                 const selected =
                     pack.id ===
                     settings.selectedStickerPack;
+
                 const firstSticker =
                     pack.stickers[0];
 
@@ -329,9 +332,7 @@
                                 !settings.premiumUnlocked
                             )}
                         </div>
-                        <div
-                            class="adapt-sticker-pack-row"
-                        >
+                        <div class="adapt-sticker-pack-row">
                             ${pack.stickers
                                 .map(
                                     (sticker) => `
@@ -358,12 +359,99 @@
             .join("");
     }
 
+    function renderPersonalFonts(settings) {
+        const uploadedFonts =
+            globalThis.ADAPTFont
+                ?.getUploadedFonts?.() || [];
+
+        const locked =
+            !settings.premiumUnlocked;
+
+        const fontRows = uploadedFonts.length
+            ? uploadedFonts
+                  .map(
+                      (font) => `
+                        <li class="adapt-personal-font-row">
+                            <span
+                                class="adapt-personal-font-name"
+                                style="font-family: ${escapeHTML(
+                                    font.family
+                                )};"
+                            >${escapeHTML(font.label)}</span>
+                            <button
+                                type="button"
+                                class="adapt-personal-font-delete"
+                                data-action="delete-personal-font"
+                                data-font-value="${escapeHTML(
+                                    font.value
+                                )}"
+                                data-font-name="${escapeHTML(
+                                    font.label
+                                )}"
+                                data-locked="${String(locked)}"
+                                aria-label="Delete ${escapeHTML(
+                                    font.label
+                                )}"
+                                title="Delete ${escapeHTML(
+                                    font.label
+                                )}"
+                            >×</button>
+                        </li>
+                    `
+                  )
+                  .join("")
+            : `
+                <li class="adapt-personal-font-empty">
+                    No personal fonts have been uploaded.
+                </li>
+            `;
+
+        return `
+            <article class="adapt-settings-card adapt-wide-card adapt-personal-fonts-card">
+                <div class="adapt-settings-card-heading">
+                    <h3>Manage Personal Fonts</h3>
+                    ${lockMarkup(locked)}
+                </div>
+
+                <p class="adapt-settings-description">
+                    Uploaded TTF fonts remain available in the toolbar font list.
+                </p>
+
+                <button
+                    type="button"
+                    class="adapt-personal-font-add"
+                    data-action="add-personal-font"
+                    data-locked="${String(locked)}"
+                >Add a Font</button>
+
+                <ul class="adapt-personal-font-list">
+                    ${fontRows}
+                </ul>
+
+                ${
+                    fontStatus
+                        ? `
+                            <p
+                                class="adapt-font-status adapt-font-status-${fontStatus.type}"
+                                role="status"
+                                aria-live="polite"
+                            >${escapeHTML(
+                                fontStatus.message
+                            )}</p>
+                        `
+                        : ""
+                }
+            </article>
+        `;
+    }
+
     function renderSettings() {
         if (!panelContent) {
             return;
         }
 
         const settings = getSettings();
+
         const premiumUnlocked =
             Boolean(settings.premiumUnlocked);
 
@@ -396,6 +484,7 @@
 
                     <article class="adapt-settings-card">
                         <h3>Bold Text Size</h3>
+
                         <div class="adapt-settings-number-grid adapt-settings-single-number-grid">
                             ${numericField(
                                 "adapt-setting-bold-size-increase",
@@ -405,9 +494,11 @@
                                 50
                             )}
                         </div>
+
                         <p class="adapt-settings-description">
                             Enlarges bold text relative to the current text size.
                         </p>
+
                         <p
                             class="adapt-settings-warning"
                             ${
@@ -453,6 +544,8 @@
                         warning: LEADING_WARNING
                     })}
                 </div>
+
+                ${renderPersonalFonts(settings)}
             </section>
 
             <section class="adapt-settings-section">
@@ -507,13 +600,13 @@
             </section>
 
             <section class="adapt-settings-section adapt-premium-section">
-
                 <div class="adapt-settings-two-column">
                     <article class="adapt-settings-card">
                         <div class="adapt-settings-card-heading">
                             <h3>Line Guide Color</h3>
                             ${lockMarkup(!premiumUnlocked)}
                         </div>
+
                         <label class="adapt-color-picker-row">
                             <input
                                 id="adapt-setting-line-color"
@@ -536,6 +629,7 @@
                             <h3>Speak Voice</h3>
                             ${lockMarkup(!premiumUnlocked)}
                         </div>
+
                         <select
                             id="adapt-setting-speech-voice"
                             data-locked="${String(
@@ -554,6 +648,7 @@
                         <h3>Toolbar Color</h3>
                         ${lockMarkup(!premiumUnlocked)}
                     </div>
+
                     <div class="adapt-toolbar-color-grid">
                         ${renderToolbarThemes(settings)}
                     </div>
@@ -568,6 +663,7 @@
                     </div>
                     ${lockMarkup(!premiumUnlocked)}
                 </div>
+
                 <p class="adapt-settings-description">
                     Choose the pack that appears when the toolbar sticker button is opened.
                 </p>
@@ -577,6 +673,7 @@
                         <h3>Sticker Size</h3>
                         ${lockMarkup(!premiumUnlocked)}
                     </div>
+
                     <div class="adapt-settings-number-grid adapt-settings-single-number-grid">
                         ${numericField(
                             "adapt-setting-sticker-size",
@@ -593,14 +690,6 @@
                     ${renderStickerPacks(settings)}
                 </div>
             </section>
-
-            ${
-                statusMessage
-                    ? `<p class="adapt-settings-status">${escapeHTML(
-                          statusMessage
-                      )}</p>`
-                    : ""
-            }
         `;
     }
 
@@ -610,6 +699,7 @@
         }
 
         const style = document.createElement("style");
+
         style.textContent = `
             .adapt-settings-overlay,
             .adapt-purchase-overlay {
@@ -720,7 +810,8 @@
                 padding: 18px;
             }
 
-            .adapt-settings-section + .adapt-settings-section {
+            .adapt-settings-section +
+            .adapt-settings-section {
                 margin-top: 24px;
                 padding-top: 24px;
                 border-top:
@@ -806,7 +897,8 @@
             }
 
             .adapt-settings-single-number-grid {
-                grid-template-columns: minmax(0, 1fr);
+                grid-template-columns:
+                    minmax(0, 1fr);
             }
 
             .adapt-settings-number-field {
@@ -949,7 +1041,8 @@
                 line-height: 1;
             }
 
-            .adapt-color-circle .adapt-settings-lock {
+            .adapt-color-circle
+            .adapt-settings-lock {
                 position: absolute;
                 inset: 0;
                 display: grid;
@@ -1074,11 +1167,13 @@
             }
 
             .adapt-sticker-pack-card {
-                min-width: min(
-                    100%,
-                    var(--adapt-sticker-card-width)
-                );
-                flex: 1 1
+                min-width:
+                    min(
+                        100%,
+                        var(--adapt-sticker-card-width)
+                    );
+                flex:
+                    1 1
                     var(--adapt-sticker-card-width);
                 max-width: 100%;
                 box-sizing: border-box;
@@ -1157,6 +1252,127 @@
                 font-size: 12px;
             }
 
+            .adapt-personal-fonts-card {
+                margin-top: 12px;
+            }
+
+            .adapt-personal-font-add {
+                padding: 8px 12px;
+                color: inherit;
+                background:
+                    var(
+                        --adapt-toolbar-hover,
+                        ${ADAPT.hoverColor}
+                    );
+                border:
+                    1px solid
+                    var(
+                        --adapt-toolbar-border,
+                        ${ADAPT.borderColor}
+                    );
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 700;
+            }
+
+            .adapt-personal-font-list {
+                display: grid;
+                gap: 7px;
+                margin: 12px 0 0;
+                padding: 0;
+                list-style: none;
+            }
+
+            .adapt-personal-font-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                min-height: 40px;
+                padding: 6px 7px 6px 11px;
+                background:
+                    var(
+                        --adapt-toolbar-bg,
+                        ${ADAPT.bgColor}
+                    );
+                border:
+                    1px solid
+                    var(
+                        --adapt-toolbar-border,
+                        ${ADAPT.borderColor}
+                    );
+                border-radius: 8px;
+            }
+
+            .adapt-personal-font-name {
+                min-width: 0;
+                overflow: hidden;
+                font-size: 16px;
+                font-style: normal;
+                font-weight: 400;
+                line-height: 1.25;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .adapt-personal-font-delete {
+                width: 30px;
+                height: 30px;
+                display: grid;
+                flex: 0 0 30px;
+                place-items: center;
+                padding: 0;
+                color:
+                    ${ADAPT.colors.red700};
+                background:
+                    ${ADAPT.colors.transparent};
+                border: 0;
+                border-radius: 6px;
+                cursor: pointer;
+                font-family:
+                    Arial,
+                    Helvetica,
+                    sans-serif;
+                font-size: 22px;
+                line-height: 1;
+            }
+
+            .adapt-personal-font-delete:hover {
+                background:
+                    var(
+                        --adapt-toolbar-hover,
+                        ${ADAPT.hoverColor}
+                    );
+            }
+
+            .adapt-personal-font-empty {
+                padding: 10px 0;
+                opacity: 0.7;
+                font-size: 12px;
+            }
+
+            .adapt-font-status {
+                margin: 12px 0 0;
+                padding: 10px 12px;
+                border-radius: 8px;
+                font-size: 12px;
+                line-height: 1.4;
+            }
+
+            .adapt-font-status-success {
+                color:
+                    ${ADAPT.colors.green800};
+                background:
+                    ${ADAPT.colors.green050};
+            }
+
+            .adapt-font-status-error {
+                color:
+                    ${ADAPT.colors.red700};
+                background:
+                    ${ADAPT.colors.red100};
+            }
+
             .adapt-purchase-content {
                 font-size: 14px;
                 line-height: 1.5;
@@ -1220,7 +1436,9 @@
                 aria-labelledby="adapt-settings-title"
             >
                 <header class="adapt-settings-header">
-                    <h1 id="adapt-settings-title">A.D.A.P.T. Settings</h1>
+                    <h1 id="adapt-settings-title">
+                        A.D.A.P.T. Settings
+                    </h1>
                     <button
                         type="button"
                         class="adapt-settings-close"
@@ -1232,10 +1450,14 @@
             </section>
         `;
 
-        purchaseOverlay = document.createElement("div");
+        purchaseOverlay =
+            document.createElement("div");
+
         purchaseOverlay.className =
             "adapt-purchase-overlay";
+
         purchaseOverlay.hidden = true;
+
         purchaseOverlay.innerHTML = `
             <section
                 class="adapt-purchase-panel"
@@ -1244,7 +1466,9 @@
                 aria-labelledby="adapt-purchase-title"
             >
                 <header class="adapt-purchase-header">
-                    <h2 id="adapt-purchase-title">Unlock A.D.A.P.T. Premium</h2>
+                    <h2 id="adapt-purchase-title">
+                        Unlock A.D.A.P.T. Premium
+                    </h2>
                     <button
                         type="button"
                         class="adapt-purchase-close"
@@ -1252,19 +1476,38 @@
                         aria-label="Close purchase window"
                     >×</button>
                 </header>
+
                 <div class="adapt-purchase-content">
                     <p>Premium adds:</p>
                     <ul>
-                        <li>All 25 web-font choices and custom .ttf uploads</li>
-                        <li>The complete highlighter and underline color grids</li>
-                        <li>Orange, pink, green, and blue sticky notes</li>
-                        <li>A custom line-guide color selector</li>
-                        <li>Default speech voice selection</li>
-                        <li>Custom toolbar colors</li>
-                        <li>Sticker packs and page sticker placement</li>
+                        <li>
+                            All 25 web-font choices and custom .ttf uploads
+                        </li>
+                        <li>
+                            The complete highlighter and underline color grids
+                        </li>
+                        <li>
+                            Orange, pink, green, and blue sticky notes
+                        </li>
+                        <li>
+                            A custom line-guide color selector
+                        </li>
+                        <li>
+                            Default speech voice selection
+                        </li>
+                        <li>
+                            Custom toolbar colors
+                        </li>
+                        <li>
+                            Sticker packs and page sticker placement
+                        </li>
                     </ul>
-                    <p>This prototype purchase only unlocks the features locally. No payment is processed.</p>
+                    <p>
+                        This prototype purchase only unlocks the features locally.
+                        No payment is processed.
+                    </p>
                 </div>
+
                 <footer class="adapt-purchase-actions">
                     <button
                         type="button"
@@ -1284,6 +1527,7 @@
         uploadInput.type = "file";
         uploadInput.accept = ".ttf,font/ttf";
         uploadInput.hidden = true;
+
         uploadInput.setAttribute(
             "aria-label",
             "Upload a TTF font"
@@ -1304,18 +1548,22 @@
             "click",
             handleClick
         );
+
         overlay.addEventListener(
             "change",
             handleChange
         );
+
         overlay.addEventListener(
             "keydown",
             handleStickerPackKeydown
         );
+
         purchaseOverlay.addEventListener(
             "click",
             handleClick
         );
+
         uploadInput.addEventListener(
             "change",
             handleFontUpload
@@ -1326,7 +1574,7 @@
         createInterface();
 
         if (!options.preserveStatus) {
-            statusMessage = "";
+            fontStatus = null;
         }
 
         renderSettings();
@@ -1340,8 +1588,18 @@
                 }
             });
 
+        Promise.resolve(
+            globalThis.ADAPTFont?.ready
+        ).then(() => {
+            if (!overlay.hidden) {
+                renderSettings();
+            }
+        });
+
         overlay
-            .querySelector(".adapt-settings-close")
+            .querySelector(
+                ".adapt-settings-close"
+            )
             ?.focus();
     }
 
@@ -1356,9 +1614,13 @@
 
     function openPurchase() {
         createInterface();
+
         purchaseOverlay.hidden = false;
+
         purchaseOverlay
-            .querySelector(".adapt-purchase-close")
+            .querySelector(
+                ".adapt-purchase-close"
+            )
             ?.focus();
     }
 
@@ -1376,6 +1638,7 @@
             return;
         }
 
+        fontStatus = null;
         uploadInput.value = "";
         uploadInput.click();
     }
@@ -1387,52 +1650,98 @@
             return;
         }
 
-        if (!file.name.toLowerCase().endsWith(".ttf")) {
-            statusMessage =
-                "Only .ttf font files can be uploaded.";
+        if (
+            !file.name
+                .toLowerCase()
+                .endsWith(".ttf")
+        ) {
+            fontStatus = {
+                type: "error",
+                message:
+                    "Font unsuccessfully added. Only .ttf font files can be uploaded."
+            };
+
             open({ preserveStatus: true });
             return;
         }
+
+        const fontName = file.name.replace(
+            /\.ttf$/i,
+            ""
+        );
+
+        let uploadedFont;
 
         try {
             const dataUrl = await new Promise(
                 (resolve, reject) => {
                     const reader = new FileReader();
+
                     reader.onload = () =>
                         resolve(reader.result);
+
                     reader.onerror = () =>
                         reject(reader.error);
+
                     reader.readAsDataURL(file);
                 }
             );
+
             const record = {
-                name: file.name.replace(/\.ttf$/i, ""),
+                name: fontName,
                 dataUrl,
                 updatedAt: Date.now()
             };
 
-            await chrome.storage.local.set({
-                [UPLOADED_FONT_KEY]: record
-            });
-            await globalThis.ADAPTFont?.loadUploadedFont?.(
-                record
-            );
-            await updateSettings({
-                font: "uploadFont"
-            });
+            uploadedFont =
+                await globalThis.ADAPTFont
+                    ?.addUploadedFont?.(record);
 
-            statusMessage =
-                `${record.name} was uploaded and selected.`;
-            open({ preserveStatus: true });
+            if (!uploadedFont) {
+                throw new Error(
+                    "The uploaded font could not be registered."
+                );
+            }
         } catch (error) {
             console.error(
                 "[ADAPT] Could not upload the font:",
                 error
             );
-            statusMessage =
-                "The font could not be uploaded.";
+
+            fontStatus = {
+                type: "error",
+                message:
+                    `Font unsuccessfully added: ${fontName}.`
+            };
+
             open({ preserveStatus: true });
+            return;
         }
+
+        try {
+            await updateSettings({
+                font: uploadedFont.value
+            });
+
+            fontStatus = {
+                type: "success",
+                message:
+                    `Font successfully added and selected: ${uploadedFont.label}.`
+            };
+        } catch (error) {
+            console.error(
+                "[ADAPT] The font was added but could not be selected automatically:",
+                error
+            );
+
+            fontStatus = {
+                type: "success",
+                message:
+                    `Font successfully added: ${uploadedFont.label}. Select it from the toolbar font list to use it.`
+            };
+        }
+
+        open({ preserveStatus: true });
     }
 
     function readNumber(target) {
@@ -1467,9 +1776,12 @@
         }
 
         const numberSettings = {
-            "adapt-setting-size-step": "sizeStep",
-            "adapt-setting-min-size": "minSize",
-            "adapt-setting-max-size": "maxSize",
+            "adapt-setting-size-step":
+                "sizeStep",
+            "adapt-setting-min-size":
+                "minSize",
+            "adapt-setting-max-size":
+                "maxSize",
             "adapt-setting-bold-size-increase":
                 "boldSizeIncrease",
             "adapt-setting-underline-thickness":
@@ -1497,6 +1809,7 @@
                 [numberSettings[target.id]]:
                     readNumber(target)
             });
+
             renderSettings();
             return;
         }
@@ -1509,6 +1822,7 @@
                 lineGuideBlurEnabled:
                     target.checked
             });
+
             renderSettings();
             return;
         }
@@ -1520,6 +1834,7 @@
             await updateSettings({
                 lineGuideColor: target.value
             });
+
             renderSettings();
             return;
         }
@@ -1531,6 +1846,7 @@
             await updateSettings({
                 speechVoiceURI: target.value
             });
+
             renderSettings();
         }
     }
@@ -1557,7 +1873,9 @@
 
     async function handleClick(event) {
         const actionTarget =
-            event.target.closest?.("[data-action]");
+            event.target.closest?.(
+                "[data-action]"
+            );
 
         if (!actionTarget) {
             return;
@@ -1579,6 +1897,71 @@
                 close();
                 break;
 
+            case "add-personal-font":
+                chooseFontUpload();
+                break;
+
+            case "delete-personal-font": {
+                const fontValue =
+                    actionTarget.dataset.fontValue;
+
+                const fontName =
+                    actionTarget.dataset.fontName ||
+                    "Personal font";
+
+                let deleted = false;
+
+                try {
+                    deleted = Boolean(
+                        await globalThis.ADAPTFont
+                            ?.deleteUploadedFont?.(
+                                fontValue
+                            )
+                    );
+                } catch (error) {
+                    console.error(
+                        "[ADAPT] Could not delete the font:",
+                        error
+                    );
+                }
+
+                if (!deleted) {
+                    fontStatus = {
+                        type: "error",
+                        message:
+                            `Font unsuccessfully deleted: ${fontName}.`
+                    };
+
+                    renderSettings();
+                    break;
+                }
+
+                if (
+                    getSettings().font ===
+                    fontValue
+                ) {
+                    try {
+                        await updateSettings({
+                            font: "page-default"
+                        });
+                    } catch (error) {
+                        console.error(
+                            "[ADAPT] The deleted font could not be removed from the saved selection:",
+                            error
+                        );
+                    }
+                }
+
+                fontStatus = {
+                    type: "success",
+                    message:
+                        `Font successfully deleted: ${fontName}.`
+                };
+
+                renderSettings();
+                break;
+            }
+
             case "open-purchase":
                 openPurchase();
                 break;
@@ -1591,8 +1974,10 @@
                 await updateSettings({
                     premiumUnlocked: true
                 });
+
                 closePurchase();
                 renderSettings();
+
                 window.dispatchEvent(
                     new CustomEvent(
                         "adapt-premium-changed"
@@ -1605,6 +1990,7 @@
                     highlighterColor:
                         actionTarget.dataset.value
                 });
+
                 renderSettings();
                 break;
 
@@ -1613,6 +1999,7 @@
                     noteColor:
                         actionTarget.dataset.value
                 });
+
                 renderSettings();
                 break;
 
@@ -1621,6 +2008,7 @@
                     toolbarColor:
                         actionTarget.dataset.value
                 });
+
                 renderSettings();
                 break;
 
@@ -1631,6 +2019,7 @@
                     selectedStickerId:
                         actionTarget.dataset.stickerId
                 });
+
                 renderSettings();
                 break;
 
@@ -1659,6 +2048,18 @@
             }
         },
         true
+    );
+
+    window.addEventListener(
+        "adapt-fonts-changed",
+        () => {
+            if (
+                overlay &&
+                !overlay.hidden
+            ) {
+                renderSettings();
+            }
+        }
     );
 
     createInterface();
