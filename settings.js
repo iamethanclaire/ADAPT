@@ -16,6 +16,35 @@
     let purchaseOverlay = null;
     let uploadInput = null;
     let fontStatus = null;
+    let activeSettingsCategory = "typography";
+
+    const SETTINGS_CATEGORIES = Object.freeze([
+        {
+            id: "typography",
+            label: "Text & Fonts",
+            icon: "Aa"
+        },
+        {
+            id: "reading-tools",
+            label: "Reading Tools",
+            icon: "↕"
+        },
+        {
+            id: "appearance",
+            label: "Appearance",
+            icon: "◐"
+        },
+        {
+            id: "stickers",
+            label: "Stickers",
+            icon: "★"
+        },
+        {
+            id: "premium",
+            label: "Premium",
+            icon: "◇"
+        }
+    ]);
 
     function getSettings() {
         return globalThis.ADAPTStorage?.getGlobal?.() || {};
@@ -79,6 +108,7 @@
         return `
             <article class="adapt-settings-card">
                 <h3>${options.title}</h3>
+
                 <div class="adapt-settings-number-grid">
                     ${numericField(
                         options.stepId,
@@ -87,6 +117,7 @@
                         1,
                         50
                     )}
+
                     ${numericField(
                         options.minimumId,
                         "Minimum",
@@ -94,6 +125,7 @@
                         options.minimumLimit,
                         100
                     )}
+
                     ${numericField(
                         options.maximumId,
                         "Maximum",
@@ -102,6 +134,7 @@
                         options.maximumLimit
                     )}
                 </div>
+
                 <p
                     id="${options.warningId}"
                     class="adapt-settings-warning"
@@ -257,7 +290,9 @@
                                 --adapt-preview-text: ${palette.text};
                             "
                         >Aa</span>
+
                         <span>${theme.label}</span>
+
                         ${lockMarkup(
                             !settings.premiumUnlocked
                         )}
@@ -325,13 +360,15 @@
                         }px;"
                     >
                         <div class="adapt-sticker-pack-heading">
-                            <h3>${escapeHTML(
-                                pack.name
-                            )}</h3>
+                            <h3>
+                                ${escapeHTML(pack.name)}
+                            </h3>
+
                             ${lockMarkup(
                                 !settings.premiumUnlocked
                             )}
                         </div>
+
                         <div class="adapt-sticker-pack-row">
                             ${pack.stickers
                                 .map(
@@ -377,7 +414,10 @@
                                 style="font-family: ${escapeHTML(
                                     font.family
                                 )};"
-                            >${escapeHTML(font.label)}</span>
+                            >
+                                ${escapeHTML(font.label)}
+                            </span>
+
                             <button
                                 type="button"
                                 class="adapt-personal-font-delete"
@@ -422,7 +462,9 @@
                     class="adapt-personal-font-add"
                     data-action="add-personal-font"
                     data-locked="${String(locked)}"
-                >Add a Font</button>
+                >
+                    Add a Font
+                </button>
 
                 <ul class="adapt-personal-font-list">
                     ${fontRows}
@@ -435,9 +477,11 @@
                                 class="adapt-font-status adapt-font-status-${fontStatus.type}"
                                 role="status"
                                 aria-live="polite"
-                            >${escapeHTML(
-                                fontStatus.message
-                            )}</p>
+                            >
+                                ${escapeHTML(
+                                    fontStatus.message
+                                )}
+                            </p>
                         `
                         : ""
                 }
@@ -445,45 +489,81 @@
         `;
     }
 
-    function renderSettings() {
-        if (!panelContent) {
-            return;
-        }
+    function renderCategoryNavigation() {
+        return SETTINGS_CATEGORIES
+            .map((category) => {
+                const selected =
+                    category.id ===
+                    activeSettingsCategory;
 
-        const settings = getSettings();
+                return `
+                    <button
+                        type="button"
+                        class="adapt-settings-category-button${
+                            selected
+                                ? " adapt-settings-category-button-selected"
+                                : ""
+                        }"
+                        data-action="select-settings-category"
+                        data-category="${category.id}"
+                        aria-current="${
+                            selected ? "page" : "false"
+                        }"
+                    >
+                        <span
+                            class="adapt-settings-category-icon"
+                            aria-hidden="true"
+                        >
+                            ${category.icon}
+                        </span>
 
-        const premiumUnlocked =
-            Boolean(settings.premiumUnlocked);
+                        <span>${category.label}</span>
+                    </button>
+                `;
+            })
+            .join("");
+    }
 
-        panelContent.innerHTML = `
+    function renderTypographyCategory(settings) {
+        return `
+            <header class="adapt-settings-page-heading">
+
+                <h2>Text & Fonts</h2>
+
+                <p>
+                    Adjust the size and spacing of text across webpages.
+                </p>
+            </header>
+
             <section class="adapt-settings-section">
-                <div class="adapt-settings-section-heading">
-                    <div>
-                        <p class="adapt-settings-eyebrow">Free settings</p>
-                        <h2>Typography</h2>
-                    </div>
-                </div>
-
                 <div class="adapt-settings-card-grid">
                     ${typographyCard({
                         title: "Text Size",
-                        stepId: "adapt-setting-size-step",
+                        stepId:
+                            "adapt-setting-size-step",
                         step: settings.sizeStep,
-                        minimumId: "adapt-setting-min-size",
+                        minimumId:
+                            "adapt-setting-min-size",
                         minimum: settings.minSize,
                         minimumLimit: 50,
-                        maximumId: "adapt-setting-max-size",
+                        maximumId:
+                            "adapt-setting-max-size",
                         maximum: settings.maxSize,
                         maximumLimit: 200,
-                        warningId: "adapt-size-warning",
+                        warningId:
+                            "adapt-size-warning",
                         showWarning:
                             settings.maxSize > 150 ||
                             settings.minSize < 80,
-                        warning: TYPOGRAPHY_WARNING
+                        warning:
+                            TYPOGRAPHY_WARNING
                     })}
 
-                    <article class="adapt-settings-card">
-                        <h3>Bold Text Size</h3>
+                    <article class="adapt-settings-card adapt-sticker-size-card">
+                        <h3>Bold and Italic Size Increase</h3>
+                        <p class="adapt-settings-description">
+                            Enlarges bold text relative to the current text size.
+                        </p>
 
                         <div class="adapt-settings-number-grid adapt-settings-single-number-grid">
                             ${numericField(
@@ -495,10 +575,6 @@
                             )}
                         </div>
 
-                        <p class="adapt-settings-description">
-                            Enlarges bold text relative to the current text size.
-                        </p>
-
                         <p
                             class="adapt-settings-warning"
                             ${
@@ -507,104 +583,197 @@
                                     ? ""
                                     : "hidden"
                             }
-                        >${BOLD_SIZE_WARNING}</p>
+                        >
+                            ${BOLD_SIZE_WARNING}
+                        </p>
                     </article>
 
                     ${typographyCard({
                         title: "Letter Spacing",
-                        stepId: "adapt-setting-spacing-step",
+                        stepId:
+                            "adapt-setting-spacing-step",
                         step: settings.spacingStep,
-                        minimumId: "adapt-setting-min-spacing",
+                        minimumId:
+                            "adapt-setting-min-spacing",
                         minimum: settings.minSpacing,
                         minimumLimit: 25,
-                        maximumId: "adapt-setting-max-spacing",
+                        maximumId:
+                            "adapt-setting-max-spacing",
                         maximum: settings.maxSpacing,
                         maximumLimit: 300,
-                        warningId: "adapt-spacing-warning",
+                        warningId:
+                            "adapt-spacing-warning",
                         showWarning:
                             settings.maxSpacing > 200 ||
                             settings.minSpacing < 50,
-                        warning: SPACING_WARNING
+                        warning:
+                            SPACING_WARNING
                     })}
 
                     ${typographyCard({
                         title: "Line Spacing",
-                        stepId: "adapt-setting-leading-step",
+                        stepId:
+                            "adapt-setting-leading-step",
                         step: settings.leadingStep,
-                        minimumId: "adapt-setting-min-leading",
+                        minimumId:
+                            "adapt-setting-min-leading",
                         minimum: settings.minLeading,
                         minimumLimit: 50,
-                        maximumId: "adapt-setting-max-leading",
+                        maximumId:
+                            "adapt-setting-max-leading",
                         maximum: settings.maxLeading,
                         maximumLimit: 300,
-                        warningId: "adapt-leading-warning",
+                        warningId:
+                            "adapt-leading-warning",
                         showWarning:
                             settings.maxLeading > 200 ||
                             settings.minLeading < 80,
-                        warning: LEADING_WARNING
+                        warning:
+                            LEADING_WARNING
                     })}
                 </div>
 
                 ${renderPersonalFonts(settings)}
             </section>
+        `;
+    }
+
+    function renderReadingToolsCategory(
+        settings,
+        premiumUnlocked
+    ) {
+        return `
+            <header class="adapt-settings-page-heading">
+
+                <h2>Reading Tools</h2>
+
+                <p>
+                    Configure the underline, line guide, and read-aloud voice.
+                </p>
+            </header>
 
             <section class="adapt-settings-section">
-                <div class="adapt-settings-section-heading">
-                    <div>
-                        <p class="adapt-settings-eyebrow">Free settings</p>
-                        <h2>Underline</h2>
-                    </div>
-                </div>
-
-                <div class="adapt-settings-inline-controls">
-                    ${numericField(
-                        "adapt-setting-underline-thickness",
-                        "Underline thickness (px)",
-                        settings.underlineThickness,
-                        1,
-                        10
-                    )}
-                </div>
-            </section>
-
-            <section class="adapt-settings-section">
-                <div class="adapt-settings-section-heading">
-                    <div>
-                        <p class="adapt-settings-eyebrow">Free settings</p>
-                        <h2>Line Guide</h2>
-                    </div>
-                </div>
-
-                <div class="adapt-settings-inline-controls">
-                    <label class="adapt-settings-toggle-row">
-                        <input
-                            id="adapt-setting-line-blur"
-                            type="checkbox"
-                            ${
-                                settings.lineGuideBlurEnabled
-                                    ? "checked"
-                                    : ""
-                            }
-                        >
-                        <span>Blur below line guide</span>
-                    </label>
-
-                    ${numericField(
-                        "adapt-setting-line-thickness",
-                        "Line thickness (px)",
-                        settings.lineGuideThickness,
-                        1,
-                        5
-                    )}
-                </div>
-            </section>
-
-            <section class="adapt-settings-section adapt-premium-section">
                 <div class="adapt-settings-two-column">
+                    <article class="adapt-settings-card">
+                        <h3>Underline</h3>
+
+                        <p class="adapt-settings-description">
+                            Change the thickness of the reading underline.
+                        </p>
+
+                        <div class="adapt-settings-number-grid adapt-settings-single-number-grid">
+                            ${numericField(
+                                "adapt-setting-underline-thickness",
+                                "Thickness (px)",
+                                settings.underlineThickness,
+                                1,
+                                10
+                            )}
+                        </div>
+                    </article>
+
+                    <article class="adapt-settings-card">
+                        <h3>Line Guide</h3>
+
+                        <label class="adapt-settings-toggle-row adapt-settings-toggle-row-compact">
+                            <input
+                                id="adapt-setting-line-blur"
+                                type="checkbox"
+                                ${
+                                    settings.lineGuideBlurEnabled
+                                        ? "checked"
+                                        : ""
+                                }
+                            >
+
+                            <span>
+                                Blur below line guide
+                            </span>
+                        </label>
+
+                        <div class="adapt-settings-number-grid adapt-settings-single-number-grid">
+                            ${numericField(
+                                "adapt-setting-line-thickness",
+                                "Line thickness (px)",
+                                settings.lineGuideThickness,
+                                1,
+                                5
+                            )}
+                        </div>
+                    </article>
+                </div>
+
+                <article class="adapt-settings-card adapt-wide-card">
+                    <div class="adapt-settings-card-heading">
+                        <h3>Read-Aloud Voice</h3>
+                        ${lockMarkup(!premiumUnlocked)}
+                    </div>
+
+                    <p class="adapt-settings-description">
+                        Choose the browser voice used by the Speak tool.
+                    </p>
+
+                    <select
+                        id="adapt-setting-speech-voice"
+                        data-locked="${String(
+                            !premiumUnlocked
+                        )}"
+                    >
+                        ${renderVoiceOptions(
+                            settings.speechVoiceURI
+                        )}
+                    </select>
+                </article>
+            </section>
+        `;
+    }
+
+    function renderAppearanceCategory(
+        settings,
+        premiumUnlocked
+    ) {
+        return `
+            <header class="adapt-settings-page-heading">
+
+                <h2>Appearance</h2>
+
+                <p>
+                    Personalize tool colors while keeping the accessibility controls unchanged.
+                </p>
+            </header>
+
+            <section class="adapt-settings-section">
+                <article class="adapt-settings-card adapt-wide-card adapt-settings-card-first">
+                    <div class="adapt-settings-card-heading">
+                        <h3>Highlighter Color</h3>
+                    </div>
+
+                    <p class="adapt-settings-description">
+                        Choose the color used by the page highlighter.
+                    </p>
+
+                    <div class="adapt-highlighter-color-grid">
+                        ${renderHighlighterGrid(settings)}
+                    </div>
+                </article>
+
+                <article class="adapt-settings-card adapt-wide-card">
+                    <div class="adapt-settings-card-heading">
+                        <h3>Sticky Note Color</h3>
+                    </div>
+
+                    <div class="adapt-note-color-row">
+                        ${renderNoteColors(settings)}
+                    </div>
+                </article>
+
+                <div class="adapt-settings-two-column adapt-wide-card">
                     <article class="adapt-settings-card">
                         <div class="adapt-settings-card-heading">
                             <h3>Line Guide Color</h3>
-                            ${lockMarkup(!premiumUnlocked)}
+                            ${lockMarkup(
+                                !premiumUnlocked
+                            )}
                         </div>
 
                         <label class="adapt-color-picker-row">
@@ -618,28 +787,13 @@
                                     !premiumUnlocked
                                 )}"
                             >
-                            <span>${escapeHTML(
-                                settings.lineGuideColor
-                            )}</span>
+
+                            <span>
+                                ${escapeHTML(
+                                    settings.lineGuideColor
+                                )}
+                            </span>
                         </label>
-                    </article>
-
-                    <article class="adapt-settings-card">
-                        <div class="adapt-settings-card-heading">
-                            <h3>Speak Voice</h3>
-                            ${lockMarkup(!premiumUnlocked)}
-                        </div>
-
-                        <select
-                            id="adapt-setting-speech-voice"
-                            data-locked="${String(
-                                !premiumUnlocked
-                            )}"
-                        >
-                            ${renderVoiceOptions(
-                                settings.speechVoiceURI
-                            )}
-                        </select>
                     </article>
                 </div>
 
@@ -654,20 +808,27 @@
                     </div>
                 </article>
             </section>
+        `;
+    }
 
-            <section class="adapt-settings-section adapt-premium-section">
-                <div class="adapt-settings-section-heading">
-                    <div>
-                        <p class="adapt-settings-eyebrow">Premium settings</p>
-                        <h2>Stickers</h2>
-                    </div>
+    function renderStickersCategory(
+        settings,
+        premiumUnlocked
+    ) {
+        return `
+            <header class="adapt-settings-page-heading">
+
+                <div class="adapt-settings-page-title-row">
+                    <h2>Stickers</h2>
                     ${lockMarkup(!premiumUnlocked)}
                 </div>
 
-                <p class="adapt-settings-description">
-                    Choose the pack that appears when the toolbar sticker button is opened.
+                <p>
+                    Choose the size and sticker pack shown in the toolbar.
                 </p>
+            </header>
 
+            <section class="adapt-settings-section">
                 <article class="adapt-settings-card adapt-sticker-size-card">
                     <div class="adapt-settings-card-heading">
                         <h3>Sticker Size</h3>
@@ -693,12 +854,158 @@
         `;
     }
 
+    function renderPremiumCategory(premiumUnlocked) {
+        return `
+            <header class="adapt-settings-page-heading">
+
+                <h2>Premium</h2>
+
+                <p>
+                    Manage your premium subscription.
+                </p>
+            </header>
+
+            <section class="adapt-settings-section">
+                <article class="adapt-settings-card adapt-premium-summary-card">
+                    <div>
+                        <p class="adapt-premium-summary-label">
+                            Current plan
+                        </p>
+
+                        <h3>
+                            ${
+                                premiumUnlocked
+                                    ? "A.D.A.P.T. Premium"
+                                    : "A.D.A.P.T. Free"
+                            }
+                        </h3>
+
+                        <p class="adapt-settings-description">
+                            ${
+                                premiumUnlocked
+                                    ? "All personalization options are unlocked on this device."
+                                    : "Every accessibility tool remains available. Premium adds more personalization choices."
+                            }
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="adapt-premium-status-button"
+                        ${
+                            premiumUnlocked
+                                ? "disabled"
+                                : 'data-action="open-purchase"'
+                        }
+                    >
+                        ${
+                            premiumUnlocked
+                                ? "Premium active"
+                                : "View Premium"
+                        }
+                    </button>
+                </article>
+
+                <article class="adapt-settings-card adapt-wide-card">
+                    <h3>Premium personalization</h3>
+
+                    <ul class="adapt-premium-feature-list">
+                        <li>
+                            Additional web fonts and personal TTF uploads
+                        </li>
+                        <li>
+                            Expanded highlighter and sticky-note colors
+                        </li>
+                        <li>
+                            Custom line-guide and toolbar colors
+                        </li>
+                        <li>
+                            Voice selection and sticker packs
+                        </li>
+                    </ul>
+                </article>
+            </section>
+        `;
+    }
+
+    function renderActiveSettingsCategory(
+        settings,
+        premiumUnlocked
+    ) {
+        switch (activeSettingsCategory) {
+            case "reading-tools":
+                return renderReadingToolsCategory(
+                    settings,
+                    premiumUnlocked
+                );
+
+            case "appearance":
+                return renderAppearanceCategory(
+                    settings,
+                    premiumUnlocked
+                );
+
+            case "stickers":
+                return renderStickersCategory(
+                    settings,
+                    premiumUnlocked
+                );
+
+            case "premium":
+                return renderPremiumCategory(
+                    premiumUnlocked
+                );
+
+            case "typography":
+            default:
+                activeSettingsCategory =
+                    "typography";
+
+                return renderTypographyCategory(
+                    settings
+                );
+        }
+    }
+
+    function renderSettings() {
+        if (!panelContent) {
+            return;
+        }
+
+        const settings = getSettings();
+
+        const premiumUnlocked =
+            Boolean(settings.premiumUnlocked);
+
+        panelContent.innerHTML = `
+            <aside class="adapt-settings-sidebar">
+                <nav
+                    class="adapt-settings-category-list"
+                    aria-label="Settings categories"
+                >
+                    ${renderCategoryNavigation()}
+                </nav>
+            </aside>
+
+            <main
+                class="adapt-settings-category-content"
+                tabindex="-1"
+            >
+                ${renderActiveSettingsCategory(
+                    settings,
+                    premiumUnlocked
+                )}
+            </main>
+        `;
+    }
+
     function createInterface() {
         if (overlay) {
             return;
         }
 
-        const style = document.createElement("style");
+        const style =
+            document.createElement("style");
 
         style.textContent = `
             .adapt-settings-overlay,
@@ -725,8 +1032,18 @@
 
             .adapt-settings-panel,
             .adapt-purchase-panel {
-                width: min(820px, calc(100vw - 32px));
-                max-height: min(840px, calc(100vh - 32px));
+                width:
+                    min(
+                        1100px,
+                        calc(100vw - 32px)
+                    );
+                height:
+                    min(
+                        820px,
+                        calc(100vh - 32px)
+                    );
+                max-height:
+                    calc(100vh - 32px);
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
@@ -753,7 +1070,12 @@
             }
 
             .adapt-purchase-panel {
-                width: min(520px, calc(100vw - 32px));
+                width:
+                    min(
+                        520px,
+                        calc(100vw - 32px)
+                    );
+                height: auto;
             }
 
             .adapt-settings-header,
@@ -762,7 +1084,7 @@
                 align-items: center;
                 justify-content: space-between;
                 gap: 16px;
-                padding: 16px 18px;
+                padding: 18px 22px;
                 border-bottom:
                     1px solid
                     var(
@@ -804,10 +1126,117 @@
                     );
             }
 
+            .adapt-settings-close:focus-visible,
+            .adapt-purchase-close:focus-visible {
+                outline:
+                    3px solid
+                    ${ADAPT.selectedToolColor};
+                outline-offset: 2px;
+            }
+
             .adapt-settings-content,
             .adapt-purchase-content {
                 overflow: auto;
                 padding: 18px;
+            }
+
+            .adapt-settings-content {
+                min-height: 0;
+                display: grid;
+                flex: 1 1 auto;
+                grid-template-columns:
+                    230px minmax(0, 1fr);
+                overflow: hidden;
+                padding: 0;
+            }
+
+            .adapt-settings-sidebar {
+                min-width: 0;
+                overflow: auto;
+                padding: 18px 12px;
+                background:
+                    var(
+                        --adapt-toolbar-input,
+                        ${ADAPT.inputColor}
+                    );
+            }
+
+            .adapt-settings-category-list {
+                display: grid;
+                gap: 6px;
+            }
+
+            .adapt-settings-category-button {
+                width: 100%;
+                min-height: 46px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 8px 12px;
+                color: inherit;
+                background:
+                    ${ADAPT.colors.transparent};
+                border: 0;
+                border-radius: 999px;
+                cursor: pointer;
+                font: inherit;
+                font-size: 13px;
+                font-weight: 700;
+                text-align: left;
+            }
+
+            .adapt-settings-category-button:hover {
+                background:
+                    var(
+                        --adapt-toolbar-hover,
+                        ${ADAPT.hoverColor}
+                    );
+            }
+
+            .adapt-settings-category-icon {
+                width: 26px;
+                height: 26px;
+                display: grid;
+                flex: 0 0 26px;
+                place-items: center;
+                font-family:
+                    Arial,
+                    Helvetica,
+                    sans-serif;
+                font-size: 14px;
+                font-weight: 700;
+                line-height: 1;
+            }
+
+            .adapt-settings-category-content {
+                min-width: 0;
+                overflow: auto;
+                padding: 28px 30px 34px;
+            }
+
+            .adapt-settings-page-heading {
+                margin-bottom: 22px;
+            }
+
+            .adapt-settings-page-heading h2 {
+                margin: 0;
+                font-size: 24px;
+                line-height: 1.2;
+            }
+
+            .adapt-settings-page-heading > p:last-child {
+                max-width: 620px;
+                margin: 7px 0 0;
+                opacity: 0.72;
+                font-size: 13px;
+                line-height: 1.5;
+            }
+
+            .adapt-settings-page-title-row {
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                gap: 10px;
             }
 
             .adapt-settings-section +
@@ -847,7 +1276,7 @@
 
             .adapt-settings-card h3,
             .adapt-sticker-pack-card h3 {
-                font-size: 14px;
+                font-size: 16px;
             }
 
             .adapt-settings-eyebrow {
@@ -861,37 +1290,41 @@
             }
 
             .adapt-settings-card-grid {
-                display: grid;
-                grid-template-columns:
-                    repeat(3, minmax(0, 1fr));
                 gap: 12px;
             }
 
             .adapt-settings-card,
             .adapt-sticker-pack-card {
-                padding: 14px;
+                padding: 14px 0;
                 background:
                     var(
                         --adapt-toolbar-input,
                         ${ADAPT.inputColor}
                     );
-                border:
-                    1px solid
-                    var(
-                        --adapt-toolbar-border,
-                        ${ADAPT.borderColor}
-                    );
-                border-radius: 10px;
+                // border:
+                //     1px solid
+                //     var(
+                //         --adapt-toolbar-border,
+                //         ${ADAPT.borderColor}
+                //     );
+                // border-radius: 10px;
             }
 
             .adapt-wide-card {
                 margin-top: 12px;
             }
 
+            .adapt-settings-card-first {
+                margin-top: 0;
+            }
+
             .adapt-settings-number-grid {
                 display: grid;
                 grid-template-columns:
-                    repeat(3, minmax(0, 1fr));
+                    repeat(
+                        3,
+                        minmax(0, 1fr)
+                    );
                 gap: 8px;
                 margin-top: 12px;
             }
@@ -912,6 +1345,7 @@
             .adapt-settings-card select {
                 width: 100%;
                 min-width: 0;
+                box-sizing: border-box;
                 padding: 7px 8px;
                 color: inherit;
                 background:
@@ -928,10 +1362,29 @@
                 border-radius: 7px;
             }
 
+            .adapt-settings-number-field input:focus-visible,
+            .adapt-settings-card select:focus-visible {
+                outline:
+                    3px solid
+                    ${ADAPT.selectedToolColor};
+                outline-offset: 2px;
+            }
+
             .adapt-settings-number-field small {
                 opacity: 0.66;
                 font-size: 9px;
                 font-weight: 400;
+            }
+
+            .adapt-settings-number-field input[type="number"]::-webkit-inner-spin-button,
+            .adapt-settings-number-field input[type="number"]::-webkit-outer-spin-button {
+                margin: 0;
+                -webkit-appearance: none;
+            }
+
+            .adapt-settings-number-field input[type="number"] {
+                appearance: textfield;
+                -moz-appearance: textfield;
             }
 
             .adapt-settings-warning {
@@ -948,9 +1401,6 @@
 
             .adapt-settings-inline-controls,
             .adapt-settings-two-column {
-                display: grid;
-                grid-template-columns:
-                    repeat(2, minmax(0, 1fr));
                 gap: 12px;
             }
 
@@ -973,6 +1423,14 @@
                 border-radius: 10px;
                 font-size: 13px;
                 font-weight: 700;
+            }
+
+            .adapt-settings-toggle-row-compact {
+                margin-top: 12px;
+                padding: 10px 0;
+                background:
+                    ${ADAPT.colors.transparent};
+                border: 0;
             }
 
             .adapt-settings-description {
@@ -1003,15 +1461,51 @@
                 font-weight: 700;
             }
 
+            .adapt-premium-status-button:focus-visible,
+            .adapt-purchase-cancel:focus-visible,
+            .adapt-purchase-confirm:focus-visible {
+                outline:
+                    3px solid
+                    ${ADAPT.selectedToolColor};
+                outline-offset: 2px;
+            }
+
             .adapt-premium-status-button:disabled {
                 cursor: default;
                 opacity: 0.74;
             }
 
+            .adapt-premium-summary-card {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 24px;
+                padding: 20px;
+            }
+
+            .adapt-premium-summary-label {
+                margin: 0 0 6px;
+                color:
+                    ${ADAPT.colors.blue700};
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+            }
+
+            .adapt-premium-feature-list {
+                display: grid;
+                gap: 9px;
+                margin: 12px 0 0;
+                padding-left: 20px;
+                font-size: 13px;
+                line-height: 1.45;
+            }
+
             .adapt-highlighter-color-grid {
                 display: grid;
                 grid-template-columns:
-                    repeat(8, 30px);
+                    repeat(10, 30px);
                 gap: 10px;
             }
 
@@ -1110,7 +1604,10 @@
             .adapt-toolbar-color-grid {
                 display: grid;
                 grid-template-columns:
-                    repeat(3, minmax(0, 1fr));
+                    repeat(
+                        3,
+                        minmax(0, 1fr)
+                    );
                 gap: 9px;
                 margin-top: 10px;
             }
@@ -1156,7 +1653,7 @@
             }
 
             .adapt-sticker-size-card {
-                width: min(220px, 100%);
+                width: min(265px, 100%);
                 box-sizing: border-box;
                 margin: 0 0 12px;
             }
@@ -1170,11 +1667,15 @@
                 min-width:
                     min(
                         100%,
-                        var(--adapt-sticker-card-width)
+                        var(
+                            --adapt-sticker-card-width
+                        )
                     );
                 flex:
                     1 1
-                    var(--adapt-sticker-card-width);
+                    var(
+                        --adapt-sticker-card-width
+                    );
                 max-width: 100%;
                 box-sizing: border-box;
                 cursor: pointer;
@@ -1323,7 +1824,7 @@
                 place-items: center;
                 padding: 0;
                 color:
-                    ${ADAPT.colors.red700};
+                    ${ADAPT.borderColor};
                 background:
                     ${ADAPT.colors.transparent};
                 border: 0;
@@ -1404,8 +1905,67 @@
             }
 
             @media (max-width: 720px) {
+                .adapt-settings-overlay,
+                .adapt-purchase-overlay {
+                    padding: 8px;
+                }
+
+                .adapt-settings-panel {
+                    width:
+                        calc(100vw - 16px);
+                    height:
+                        calc(100vh - 16px);
+                    max-height:
+                        calc(100vh - 16px);
+                }
+
+                .adapt-settings-content {
+                    grid-template-columns:
+                        minmax(0, 1fr);
+                    grid-template-rows:
+                        auto minmax(0, 1fr);
+                }
+
+                .adapt-settings-sidebar {
+                    overflow-x: auto;
+                    overflow-y: hidden;
+                    padding: 10px 12px;
+                    border-right: 0;
+                    border-bottom:
+                        1px solid
+                        var(
+                            --adapt-toolbar-border,
+                            ${ADAPT.borderColor}
+                        );
+                }
+
+                .adapt-settings-category-list {
+                    width: max-content;
+                    display: flex;
+                }
+
+                .adapt-settings-category-button {
+                    width: auto;
+                    white-space: nowrap;
+                }
+
+                .adapt-settings-category-content {
+                    padding: 22px 18px 28px;
+                }
+
                 .adapt-settings-card-grid {
                     grid-template-columns: 1fr;
+                }
+
+                .adapt-settings-two-column,
+                .adapt-settings-inline-controls {
+                    grid-template-columns: 1fr;
+                }
+
+                .adapt-premium-summary-card {
+                    align-items: flex-start;
+                    flex-direction: column;
+                    gap: 14px;
                 }
 
                 .adapt-sticker-pack-card {
@@ -1415,7 +1975,10 @@
 
                 .adapt-toolbar-color-grid {
                     grid-template-columns:
-                        repeat(2, minmax(0, 1fr));
+                        repeat(
+                            2,
+                            minmax(0, 1fr)
+                        );
                 }
 
                 .adapt-highlighter-color-grid {
@@ -1423,11 +1986,27 @@
                         repeat(6, 30px);
                 }
             }
+            
+            .adapt-settings-category-button-selected,
+            .adapt-settings-category-button-selected:hover,
+            .adapt-settings-category-button-selected:focus-visible {
+
+            background-color:
+                #dbeafe !important;
+
+            background-image:
+                none !important;
+            }
         `;
 
-        overlay = document.createElement("div");
-        overlay.className = "adapt-settings-overlay";
+        overlay =
+            document.createElement("div");
+
+        overlay.className =
+            "adapt-settings-overlay";
+
         overlay.hidden = true;
+
         overlay.innerHTML = `
             <section
                 class="adapt-settings-panel"
@@ -1437,8 +2016,9 @@
             >
                 <header class="adapt-settings-header">
                     <h1 id="adapt-settings-title">
-                        A.D.A.P.T. Settings
+                        Settings
                     </h1>
+
                     <button
                         type="button"
                         class="adapt-settings-close"
@@ -1446,6 +2026,7 @@
                         aria-label="Close settings"
                     >×</button>
                 </header>
+
                 <div class="adapt-settings-content"></div>
             </section>
         `;
@@ -1469,6 +2050,7 @@
                     <h2 id="adapt-purchase-title">
                         Unlock A.D.A.P.T. Premium
                     </h2>
+
                     <button
                         type="button"
                         class="adapt-purchase-close"
@@ -1479,15 +2061,13 @@
 
                 <div class="adapt-purchase-content">
                     <p>Premium adds:</p>
+
                     <ul>
                         <li>
                             All 25 web-font choices and custom .ttf uploads
                         </li>
                         <li>
-                            The complete highlighter and underline color grids
-                        </li>
-                        <li>
-                            Orange, pink, green, and blue sticky notes
+                            Expanded highlighter and sticky-note colors
                         </li>
                         <li>
                             A custom line-guide color selector
@@ -1502,6 +2082,7 @@
                             Sticker packs and page sticker placement
                         </li>
                     </ul>
+
                     <p>
                         This prototype purchase only unlocks the features locally.
                         No payment is processed.
@@ -1513,17 +2094,24 @@
                         type="button"
                         class="adapt-purchase-cancel"
                         data-action="close-purchase"
-                    >Cancel</button>
+                    >
+                        Cancel
+                    </button>
+
                     <button
                         type="button"
                         class="adapt-purchase-confirm"
                         data-action="purchase"
-                    >Purchase</button>
+                    >
+                        Purchase
+                    </button>
                 </footer>
             </section>
         `;
 
-        uploadInput = document.createElement("input");
+        uploadInput =
+            document.createElement("input");
+
         uploadInput.type = "file";
         uploadInput.accept = ".ttf,font/ttf";
         uploadInput.hidden = true;
@@ -1644,7 +2232,8 @@
     }
 
     async function handleFontUpload() {
-        const file = uploadInput.files?.[0];
+        const file =
+            uploadInput.files?.[0];
 
         if (!file) {
             return;
@@ -1675,7 +2264,8 @@
         try {
             const dataUrl = await new Promise(
                 (resolve, reject) => {
-                    const reader = new FileReader();
+                    const reader =
+                        new FileReader();
 
                     reader.onload = () =>
                         resolve(reader.result);
@@ -1695,7 +2285,9 @@
 
             uploadedFont =
                 await globalThis.ADAPTFont
-                    ?.addUploadedFont?.(record);
+                    ?.addUploadedFont?.(
+                        record
+                    );
 
             if (!uploadedFont) {
                 throw new Error(
@@ -1745,9 +2337,14 @@
     }
 
     function readNumber(target) {
-        const minimum = Number(target.min);
-        const maximum = Number(target.max);
-        const value = Number(target.value);
+        const minimum =
+            Number(target.min);
+
+        const maximum =
+            Number(target.max);
+
+        const value =
+            Number(target.value);
 
         return Math.min(
             Math.max(
@@ -1768,7 +2365,8 @@
         }
 
         if (
-            target.dataset.locked === "true"
+            target.dataset.locked ===
+            "true"
         ) {
             renderSettings();
             openPurchase();
@@ -1832,7 +2430,8 @@
             "adapt-setting-line-color"
         ) {
             await updateSettings({
-                lineGuideColor: target.value
+                lineGuideColor:
+                    target.value
             });
 
             renderSettings();
@@ -1844,7 +2443,8 @@
             "adapt-setting-speech-voice"
         ) {
             await updateSettings({
-                speechVoiceURI: target.value
+                speechVoiceURI:
+                    target.value
             });
 
             renderSettings();
@@ -1896,6 +2496,34 @@
             case "close-settings":
                 close();
                 break;
+
+            case "select-settings-category": {
+                const category =
+                    actionTarget.dataset.category;
+
+                const categoryExists =
+                    SETTINGS_CATEGORIES.some(
+                        (item) =>
+                            item.id === category
+                    );
+
+                if (!categoryExists) {
+                    break;
+                }
+
+                activeSettingsCategory =
+                    category;
+
+                renderSettings();
+
+                overlay
+                    .querySelector(
+                        `.adapt-settings-category-button[data-category="${category}"]`
+                    )
+                    ?.focus();
+
+                break;
+            }
 
             case "add-personal-font":
                 chooseFontUpload();
@@ -2043,7 +2671,10 @@
                 return;
             }
 
-            if (overlay && !overlay.hidden) {
+            if (
+                overlay &&
+                !overlay.hidden
+            ) {
                 close();
             }
         },
@@ -2064,12 +2695,13 @@
 
     createInterface();
 
-    globalThis.ADAPTSettings = Object.freeze({
-        open,
-        close,
-        openPurchase,
-        closePurchase,
-        chooseFontUpload,
-        refresh: renderSettings
-    });
+    globalThis.ADAPTSettings =
+        Object.freeze({
+            open,
+            close,
+            openPurchase,
+            closePurchase,
+            chooseFontUpload,
+            refresh: renderSettings
+        });
 })();
